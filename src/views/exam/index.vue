@@ -70,7 +70,7 @@
       <el-col :span="19" :xs="24">
         <el-card class="qu-content content-h">
           <!-- 题干 -->
-          <p v-if="quData.content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
+          <p v-if="quData.content" class="question-content">{{ quData.sort + 1 }}.{{ quData.content }}</p>
           <p v-if="quData.image">
             <el-image :src="quData.image"
             :preview-src="[quData.image]" 
@@ -86,7 +86,7 @@
                 :key="item.id"
                 :label="item.id"
               >
-                {{ numberToLetter(item.sort) }}.{{ item.content }}
+                <span class="option-content">{{ numberToLetter(item.sort) }}.{{ item.content }}</span>
                 <div v-if="item.image" style="clear: both">
                   <el-image :src="item.image"
                   :preview-src="[item.image]" 
@@ -104,7 +104,7 @@
                 :key="item.id"
                 :label="item.id"
               >
-                {{ numberToLetter(item.sort) }}.{{ item.content }}
+                <span class="option-content">{{ numberToLetter(item.sort) }}.{{ item.content }}</span>
                 <div v-if="item.image" style="clear: both">
                   <el-image :src="item.image" 
                   :preview-src="[item.image]" 
@@ -824,6 +824,20 @@ export default {
 <style scoped>
 page {
   background: #ebecee;
+}
+
+/* 题目内容样式 - 支持换行显示 */
+.question-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+/* 选项内容样式 - 支持换行显示 */
+.option-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
 }
 
 .qu-content div {

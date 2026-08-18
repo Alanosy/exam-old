@@ -100,6 +100,8 @@
               border-radius: 200px;
             "
             :src="data.avatar"
+            :key="data.avatar"
+            referrerpolicy="no-referrer"
             alt=""
           >
         </div>
@@ -178,6 +180,9 @@ export default {
       const res = await getInfo()
       if (res.code) {
         this.data = res.data
+        if (res.data && res.data.avatar) {
+          this.$store.commit('user/SET_AVATAR', res.data.avatar)
+        }
       } else {
         this.$message.error('获取个人信息失败')
       }
@@ -200,10 +205,13 @@ export default {
         uploadAvatar(formData)
           .then((res) => {
             if (res.code) {
+              const avatarUrl = res.data
+              this.$store.commit('user/SET_AVATAR', avatarUrl)
+              this.data = { ...this.data, avatar: avatarUrl }
               this.getInfoFun()
               this.$message.success('文件上传成功！')
-              this.fileDialogVisible = false // 关闭对话框
-              // 可以在这里处理成功后的逻辑，如刷新数据等
+              this.fileDialogVisible = false
+              this.fileList = []
             }
           })
           .catch((error) => {

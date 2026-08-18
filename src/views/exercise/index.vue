@@ -27,6 +27,7 @@
       border
       fit
       highlight-current-row
+      empty-text="暂无本班可刷题库，请联系老师在题库中勾选班级"
       :header-cell-style="{
         background: '#f2f3f4',
         color: '#555',

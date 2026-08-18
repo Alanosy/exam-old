@@ -45,6 +45,7 @@ const actions = {
           const user = JSON.parse(info.userInfo)
           const roleId = JSON.parse(info.userInfo).roleId
           setUserId(user.id)
+          commit('SET_AVATAR', user.avatar || '')
           if (roleId === 1) {
             window.localStorage.setItem('roles', 'student')
             setRole('student')

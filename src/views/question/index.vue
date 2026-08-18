@@ -89,7 +89,11 @@
       <el-table-column label="序号" align="center" width="80">
         <template slot-scope="scope">{{ scope.$index + 1 }}</template>
       </el-table-column>
-      <el-table-column prop="content" label="题干" align="center" />
+      <el-table-column prop="content" label="题干" align="center">
+        <template slot-scope="scope">
+          <div class="question-content">{{ scope.row.content }}</div>
+        </template>
+      </el-table-column>
       <el-table-column label="题目类型" align="center">
         <template slot-scope="scope">
           <span v-if="scope.row.quType == 1">单选题</span>
@@ -431,4 +435,11 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+/* 题目内容样式 - 支持换行显示 */
+.question-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+</style>

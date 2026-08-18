@@ -12,7 +12,7 @@
       <div class="right-menu">
         <el-dropdown class="avatar-container" trigger="click">
           <div class="avatar-wrapper">
-            <img :src="user.avatar" class="user-avatar">
+            <img :src="displayAvatar" class="user-avatar" referrerpolicy="no-referrer">
             <i class="el-icon-caret-bottom" />
           </div>
           <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -77,10 +77,14 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['sidebar', 'avatar', 'tags'])
+    ...mapGetters(['sidebar', 'avatar', 'tags']),
+    displayAvatar() {
+      return this.avatar || (this.user && this.user.avatar) || ''
+    }
   },
   created() {
     this.decode()
+    this.loadLatestAvatar()
   },
   methods: {
     handleTagClose(item) {
@@ -100,6 +104,13 @@ export default {
       const token = getToken()
       const user = parseJwt(token)
       this.user = JSON.parse(user.userInfo)
+    },
+    async loadLatestAvatar() {
+      try {
+        await this.$store.dispatch('user/getInfo')
+      } catch (e) {
+        // 接口失败时仍使用 token 中的头像
+      }
     },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
