@@ -39,6 +39,8 @@
       <el-table-column prop="createTime" label="注册时间" align="center" />
       <el-table-column align="center" label="操作">
         <template slot-scope="{ row }">
+          <el-button v-if="(role == 'teacher' && row.roleId == 1) || (role == 'admin' && row.roleId != 3)" type="text" size="small" style="font-size: 14px"
+            @click="openEditUser(row)">编辑</el-button>
           <el-button v-if="role == 'teacher'" type="text" size="small" style="color: red; font-size: 14px"
             @click="removeUserClass(row)">移除班级</el-button>
           <el-button v-if="role == 'admin'" type="text" size="small" style="color: red; font-size: 14px"
@@ -84,6 +86,42 @@
         <el-button type="primary" @click="addUser">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 编辑弹窗 -->
+    <el-dialog title="编辑用户" :visible.sync="editUserDialogVisible">
+      <el-form :model="editForm">
+      <el-row>
+        <el-col :span="11">
+          <el-form-item label="用户名" :label-width="formLabelWidth">
+            <el-input v-model="editForm.userName" autocomplete="off" disabled />
+          </el-form-item>
+        </el-col>
+        <el-col :span="11">
+          <el-form-item label="真实姓名" :label-width="formLabelWidth">
+            <el-input v-model="editForm.realName" autocomplete="off" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="11">
+          <el-form-item label="身份选择" :label-width="formLabelWidth">
+            <el-select v-model="editForm.roleId" placeholder="请选择身份" disabled>
+              <el-option label="学生" value="1" />
+              <el-option label="教师" value="2" />
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="11">
+          <el-form-item label="班级选择" :label-width="formLabelWidth" v-if="editForm.roleId == '1'">
+            <ClassSelect v-model="editForm.gradeId" :is-multiple="false" />
+          </el-form-item>
+        </el-col>
+      </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editUserDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="updateUser">确 定</el-button>
+      </div>
+    </el-dialog>
     <!-- 文件上传 -->
     <el-dialog width="400px" :show-close="false" :close-on-click-modal="false" title="上传文件"
       :visible.sync="fileDialogVisible">
@@ -112,7 +150,7 @@
 
 <script>
 import ClassSelect from '@/components/ClassSelect'
-import { userPaging, classAdd, userDel, userImport } from '@/api/user'
+import { userPaging, classAdd, userDel, userImport, userUpdate } from '@/api/user'
 import { userClassRemove } from '@/api/class_'
 export default {
   components: { ClassSelect },
@@ -128,10 +166,20 @@ export default {
       fileList: [],
       // 新增用户对话框
       addUserDiologVisible: false,
+      // 编辑用户对话框
+      editUserDialogVisible: false,
       // 导入用户对话框
       fileDialogVisible: false,
       // 新增用户表单
       addForm: {
+        userName: '',
+        realName: '',
+        roleId: '',
+        gradeId: ''
+      },
+      // 编辑用户表单
+      editForm: {
+        id: '',
         userName: '',
         realName: '',
         roleId: '',
@@ -207,6 +255,41 @@ export default {
           this.$message({
             type: 'success',
             message: '新增成功!'
+          })
+        } else {
+          this.$message({
+            type: 'info',
+            message: res.msg
+          })
+        }
+      })
+    },
+    // 打开编辑用户对话框
+    openEditUser(row) {
+      this.editForm = {
+        id: row.id,
+        userName: row.userName,
+        realName: row.realName,
+        roleId: row.roleId != null ? String(row.roleId) : '',
+        gradeId: row.gradeId || ''
+      }
+      this.editUserDialogVisible = true
+    },
+    // 编辑用户逻辑
+    updateUser() {
+      const data = {
+        userName: this.editForm.userName,
+        realName: this.editForm.realName,
+        roleId: this.editForm.roleId,
+        gradeId: this.editForm.gradeId || null
+      }
+      userUpdate(this.editForm.id, data).then((res) => {
+        if (res.code) {
+          this.getUserPage(this.pageNum, this.pageSize, this.searchForm.searchRealName, this.searchForm.searchClass)
+          this.editUserDialogVisible = false
+          this.$message({
+            type: 'success',
+            message: '修改成功!'
           })
         } else {
           this.$message({

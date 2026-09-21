@@ -12,6 +12,39 @@ const service = axios.create({
   crossDomain: true
 })
 
+let isRedirectingToLogin = false
+
+function isLoginPage() {
+  return router.currentRoute && router.currentRoute.path === '/login'
+}
+
+function isAuthExpiredMessage(msg) {
+  if (!msg) {
+    return false
+  }
+  return msg.includes('登录已过期') || msg.includes('请先登录') || msg.includes('请重新登录') || msg.includes('token无效')
+}
+
+function redirectToLogin(message) {
+  if (isRedirectingToLogin || isLoginPage()) {
+    return
+  }
+  isRedirectingToLogin = true
+  store.dispatch('user/resetToken').finally(() => {
+    router.replace({
+      path: '/login',
+      query: { redirect: router.currentRoute.fullPath }
+    }).finally(() => {
+      isRedirectingToLogin = false
+    })
+  })
+  Message({
+    message: message || '登录已过期，请重新登录',
+    type: 'error',
+    duration: 5 * 1000
+  })
+}
+
 // request interceptor
 service.interceptors.request.use(
   config => {
@@ -45,61 +78,52 @@ service.interceptors.response.use(
    */
   response => {
     const res = response.data
-    const newToken = response.headers['authorization'] // 获取新的 Token
-    if (newToken) {
-      setToken(newToken) // 存储新的 Token
-      store.commit('SET_TOKEN', newToken) // 如果 store 中有设置 Token 的 mutation，也更新一下
+    if (res.code !== 1) {
+      const msg = res.msg || '错误'
+      if (isAuthExpiredMessage(msg)) {
+        redirectToLogin(msg)
+      } else {
+        Message({
+          message: msg,
+          type: 'error',
+          duration: 5 * 1000
+        })
+      }
+      return Promise.reject(new Error(msg))
     }
 
-    if (res.code !== 1) {
-      Message({
-        message: res.msg || '错误',
-        type: 'error',
-        duration: 5 * 1000
-      })
-      return Promise.reject(new Error(res.msg || '错误'))
-    } else {
-      return res
+    const newToken = response.headers['authorization']
+    if (newToken) {
+      setToken(newToken)
+      store.commit('user/SET_TOKEN', newToken)
     }
+    return res
   },
   error => {
     console.log('err' + error)
     if (error.response) {
-      switch (error.response.status) {
-        case 401:
-          // 清除token
-          store.dispatch('user/resetToken')
-          // 跳转登录页
-          router.replace({
-            path: '/login',
-            query: { redirect: router.currentRoute.fullPath }
-          })
-          Message({
-            message: '登录已过期，请重新登录',
-            type: 'error',
-            duration: 5 * 1000
-          })
-          break
-        case 403:
-          Message({
-            message: '没有权限访问该资源',
-            type: 'error',
-            duration: 5 * 1000
-          })
-          break
-        case 404:
-          Message({
-            message: '请求的资源不存在',
-            type: 'error',
-            duration: 5 * 1000
-          })
-          break
-        default:
-          Message({
-            message: error.response.data.msg || '发生未知错误',
-            type: 'error',
-            duration: 5 * 1000
-          })
+      const status = error.response.status
+      const msg = (error.response.data && error.response.data.msg) || ''
+      if (status === 401 || isAuthExpiredMessage(msg)) {
+        redirectToLogin(msg || '登录已过期，请重新登录')
+      } else if (status === 403) {
+        Message({
+          message: msg || '没有权限访问该资源',
+          type: 'error',
+          duration: 5 * 1000
+        })
+      } else if (status === 404) {
+        Message({
+          message: '请求的资源不存在',
+          type: 'error',
+          duration: 5 * 1000
+        })
+      } else {
+        Message({
+          message: msg || '发生未知错误',
+          type: 'error',
+          duration: 5 * 1000
+        })
       }
     } else {
       Message({
@@ -111,40 +135,5 @@ service.interceptors.response.use(
     return Promise.reject(error)
   }
 )
-
-// 错误处理函数
-function handleErrorResponse(status, message) {
-  switch (status) {
-    case 401:
-      Message({
-        message: message,
-        type: 'error',
-        duration: 5 * 1000
-      })
-      // window.location.href = "https://www.example.com"
-      router.push({ path: 'login' })
-      break
-    case 403:
-      Message({
-        message: message,
-        type: 'error',
-        duration: 5 * 1000
-      })
-      break
-    case 404:
-      Message({
-        message: message,
-        type: 'error',
-        duration: 5 * 1000
-      })
-      break
-    default:
-      Message({
-        message: message || '发生未知错误',
-        type: 'error',
-        duration: 5 * 1000
-      })
-  }
-}
 
 export default service

@@ -3,10 +3,10 @@
     top="2vh"
     title="考前汇总"
     :visible.sync="dialogVisible"
-    width="80%"
+    :width="isMobile ? '95%' : '80%'"
     :before-close="handleClose"
   >
-    <el-container style="height: 70vh; border: 1px solid #eee">
+    <el-container :style="{ height: isMobile ? '60vh' : '70vh', border: '1px solid #eee' }">
       <el-container>
         <el-main class="right">
           <el-col>
@@ -29,6 +29,7 @@
                           <div v-if="item.image != null && item.image != ''">
                             <el-image :src="item.image" style="max-width: 200px;" />
                           </div>
+                          <audio-player :src="item.audio" />
                         </div>
 
                         <!-- 选项区域 -->
@@ -86,6 +87,7 @@
                           <div class="qu_content">
                             <span class="qu_num">{{ index + 1 }}. </span>{{ item.title }}
                           </div>
+                          <audio-player :src="item.audio" />
                         </div>
 
                         <!-- 简答题内容区域 -->
@@ -119,8 +121,10 @@
 </template>
 
 <script>
+import AudioPlayer from '@/components/AudioPlayer'
 export default {
   name: 'ExamSummaryDialog',
+  components: { AudioPlayer },
   props: {
     visible: {
       type: Boolean,

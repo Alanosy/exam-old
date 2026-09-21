@@ -88,15 +88,14 @@
         </span>
       </el-form-item>
 
-      <div style="display: flex">
-        <el-form-item prop="code">
+      <div class="captcha-row">
+        <el-form-item prop="code" class="captcha-item">
           <span class="svg-container">
             <svg-icon icon-class="code" />
           </span>
           <el-input
             ref="code"
             v-model="registerForm.code"
-            style="width: 300px"
             placeholder="验证码"
             name="code"
             type="text"
@@ -107,8 +106,8 @@
         </el-form-item>
         <img
           ref="captchaImg"
+          class="captcha-img"
           src="/api/auths/captcha"
-          style="margin-left: 20px; height: 47px"
           alt=""
           @click="getVerify"
         >
@@ -353,6 +352,23 @@ $light_gray: #eee;
     color: #454545;
   }
 
+  .captcha-row {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .captcha-item {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .captcha-img {
+    margin-left: 12px;
+    height: 47px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
   .login-form {
     position: relative;
     width: 520px;
@@ -360,6 +376,7 @@ $light_gray: #eee;
     padding: 160px 35px 0;
     margin: 0 auto;
     overflow: hidden;
+    box-sizing: border-box;
   }
 
   .tips {

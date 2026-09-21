@@ -22,7 +22,7 @@
                       <div>
                         <!-- <div class="qu_num">{{ index }}</div> -->
                         <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{indexx+1}}、{{ index.title }}</div>
+                        <div class="qu_content question-content">{{indexx+1}}、{{ index.title }}</div>
 
         
                       </div>
@@ -31,6 +31,7 @@
                         :preview-src="[index.image]" 
                         style="height: 100px" />
                       </div>
+                      <audio-player :src="index.audio" />
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
                         <!-- ['A', 'B', 'C', 'D'] -->
@@ -52,7 +53,7 @@
                         >
                           <!-- 选项flex浮动 -->
                           <div class="qu_choose_tag">
-                            <div class="qu_choose_tag_type">
+                            <div class="qu_choose_tag_type option-content">
                               {{ numberToLetter(indexs) }}、{{ item.content }}.
                             </div>
                             <!-- 选项内容和图片 -->
@@ -110,6 +111,7 @@
                         <!-- 【 单选题 】 -->
                         <div class="qu_content">{{ index.title }}</div>
                       </div>
+                      <audio-player :src="index.audio" />
 
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
@@ -170,8 +172,10 @@
 <script>
 import { recordExamDetail } from "@/api/record";
 import {details} from "@/api/exam"
+import AudioPlayer from "@/components/AudioPlayer";
 export default {
   name: "ExamProcess",
+  components: { AudioPlayer },
   data() {
     return {
       input: "",
@@ -248,6 +252,20 @@ export default {
 </script>
 
 <style scoped lang="scss">
+/* 题目内容样式 - 支持换行显示 */
+.question-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+/* 选项内容样式 - 支持换行显示 */
+.option-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
 .content {
   width: 97%;
   height: 60px;

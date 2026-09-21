@@ -83,4 +83,13 @@ export default {
   width: 70% !important;
 }
 
+@media screen and (max-width: 991px) {
+  .item-contain {
+    padding: 12px;
+    height: auto;
+  }
+  .box-card {
+    width: 100% !important;
+  }
+}
 </style>

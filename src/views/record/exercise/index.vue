@@ -10,6 +10,7 @@
       </el-form-item>
     </el-form>
     <el-table
+      v-if="!isMobile"
       :data="data.records"
       border
       fit
@@ -40,12 +41,23 @@
       </el-table-column>
     </el-table>
 
+    <div v-else class="h5-card-list">
+      <div v-if="!(data.records && data.records.length)" class="h5-card-empty">暂无刷题记录</div>
+      <div v-for="(row, index) in (data.records || [])" :key="row.id || index" class="h5-card">
+        <div class="h5-card-title">{{ row.title }}</div>
+        <div class="h5-card-row"><span>刷题时间</span><span>{{ row.createTime }}</span></div>
+        <div class="h5-card-actions">
+          <el-button type="primary" size="small" @click="updateRow(row)">查看</el-button>
+        </div>
+      </div>
+    </div>
+
     <div class="pagination-container">
       <el-pagination
         :current-page="data.current"
         :page-sizes="[10, 20, 30, 40]"
         :page-size="data.size"
-        layout="total, sizes, prev, pager, next, jumper"
+        :layout="paginationLayout"
         :total="data.total"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"

@@ -1,38 +1,13 @@
 <template>
   <div>
     <!-- kaitou -->
-    <div
-      style="
-        width: 98%;
-        background-color: #fef0f0;
-        height: 35px;
-        margin: auto;
-        display: flex;
-        margin-top: 10px;
-      "
-    >
-      <div
-        style="
-          color: rgb(228 59 59);
-          align-items: center;
-          display: flex;
-          margin-left: 10px;
-          letter-spacing: 0.1em;
-        "
-      >
+    <div class="exam-info-banner">
+      <div class="exam-info-banner-text">
         点击'开始考试'后将自动进入考试,请诚信考试！
       </div>
     </div>
     <!-- 内容 -->
-    <div
-      style="
-        width: 98%;
-        height: 400px;
-        margin: auto;
-        margin-top: 10px;
-        background-color: #f0f2f5;
-      "
-    >
+    <div class="exam-info-panel">
       <div style="padding: 40px 0 0 50px; letter-spacing: 0.1em">
         <span style="font-size: 14px">考试名称:</span>
         <span style="margin-left: 5px; font-size: 14px">{{ data.title }}</span>
@@ -130,5 +105,42 @@ export default {
 .ann {
   margin-top: 15px;
   margin-left: 20px;
+}
+.exam-info-banner {
+  width: 98%;
+  background-color: #fef0f0;
+  min-height: 35px;
+  margin: 10px auto 0;
+  display: flex;
+  align-items: center;
+}
+.exam-info-banner-text {
+  color: rgb(228, 59, 59);
+  margin: 8px 10px;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+}
+.exam-info-panel {
+  width: 98%;
+  min-height: 400px;
+  margin: 10px auto 0;
+  background-color: #f0f2f5;
+}
+
+@media screen and (max-width: 991px) {
+  .exam-info-panel {
+    min-height: auto;
+    padding-bottom: 16px;
+  }
+  .exam-info-panel > div {
+    padding-left: 16px !important;
+  }
+  .ann {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+  .ann .el-button {
+    width: 100%;
+  }
 }
 </style>

@@ -36,39 +36,30 @@ const mutations = {
 
 const actions = {
   // user login
-  login({ commit }, userInfo) {
-    return new Promise((resolve, reject) => {
-      login(userInfo).then(response => {
-        const { data } = response
-        if (response.code === 1) {
-          const info = parseJwt(data)
-          const user = JSON.parse(info.userInfo)
-          const roleId = JSON.parse(info.userInfo).roleId
-          setUserId(user.id)
-          if (roleId === 1) {
-            window.localStorage.setItem('roles', 'student')
-            setRole('student')
-            setGradeId(user.gradeId)
-          } else if (roleId === 2) {
-            window.localStorage.setItem('roles', 'teacher')
-            setRole('teacher')
-          } else if (roleId === 3) {
-            window.localStorage.setItem('roles', 'admin')
-            setRole('admin')
-
-          }
-          // 建立websocket连接
-          connectWebSocket()
-          commit('SET_TOKEN', data)
-          setToken(data)
-          resolve()
-        } else {
-          reject(response)
-        }
-      }).catch(error => {
-        reject(error)
-      })
-    })
+  async login({ commit }, userInfo) {
+    const response = await login(userInfo)
+    if (!response || response.code !== 1) {
+      return Promise.reject(response || new Error('登录失败'))
+    }
+    const { data } = response
+    const info = parseJwt(data)
+    const user = JSON.parse(info.userInfo)
+    const roleId = user.roleId
+    setUserId(user.id)
+    if (roleId === 1) {
+      window.localStorage.setItem('roles', 'student')
+      setRole('student')
+      setGradeId(user.gradeId)
+    } else if (roleId === 2) {
+      window.localStorage.setItem('roles', 'teacher')
+      setRole('teacher')
+    } else if (roleId === 3) {
+      window.localStorage.setItem('roles', 'admin')
+      setRole('admin')
+    }
+    connectWebSocket()
+    commit('SET_TOKEN', data)
+    setToken(data)
   },
 
   // get user info

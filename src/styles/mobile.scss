@@ -1,0 +1,249 @@
+/* 与 layout/mixin/ResizeHandler.js 中 992 断点对齐 */
+$mobile-width: 991px;
+
+body.is-mobile {
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.is-mobile .app-container {
+  padding: 12px;
+}
+
+body.is-mobile .navbar {
+  height: 50px;
+}
+
+body.is-mobile .navbar-inner {
+  height: 50px;
+}
+
+body.is-mobile .hamburger-container {
+  line-height: 50px;
+  height: 50px;
+}
+
+body.is-mobile .navbar .right-menu {
+  line-height: 50px;
+}
+
+body.is-mobile .navbar .avatar-wrapper {
+  margin-top: 4px;
+}
+
+body.is-mobile .app-main {
+  min-height: calc(100vh - 50px);
+  overflow: auto;
+}
+
+body.is-mobile .fixed-header + .app-main {
+  padding-top: 50px;
+}
+
+body.is-mobile .el-dialog {
+  width: 90% !important;
+  margin-top: 8vh !important;
+}
+
+body.is-mobile .el-message-box {
+  width: 90% !important;
+}
+
+body.is-mobile .el-pagination {
+  text-align: center;
+  padding: 12px 0;
+}
+
+body.is-mobile .el-form--inline .el-form-item {
+  display: block;
+  margin-right: 0;
+}
+
+body.is-mobile .el-form--inline .el-form-item .el-form-item__content,
+body.is-mobile .el-form--inline .el-input,
+body.is-mobile .el-form--inline .el-select {
+  width: 100%;
+}
+
+body.is-mobile img,
+body.is-mobile .el-image {
+  max-width: 100%;
+  height: auto;
+}
+
+.h5-card-list {
+  display: none;
+}
+
+.h5-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+}
+
+.h5-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  margin-bottom: 10px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.h5-card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 13px;
+  color: #606266;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+.h5-card-row > span:first-child {
+  color: #909399;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.h5-card-row > span:last-child {
+  text-align: right;
+  word-break: break-all;
+}
+
+.h5-card-actions {
+  margin-top: 12px;
+  text-align: right;
+}
+
+.h5-card-empty {
+  text-align: center;
+  color: #909399;
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+body.is-mobile .h5-card-list {
+  display: block;
+}
+
+.exam-sheet-mask {
+  display: none;
+}
+
+.exam-sheet-toggle {
+  display: none;
+}
+
+body.is-mobile .exam-page {
+  padding: 10px 10px 64px !important;
+  box-sizing: border-box;
+}
+
+body.is-mobile .exam-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+body.is-mobile .exam-top-bar .el-button {
+  float: none !important;
+  margin: 0 !important;
+}
+
+body.is-mobile .exam-sheet-col {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: auto;
+  z-index: 2000;
+  width: 100% !important;
+  margin: 0 !important;
+  transform: translateY(110%);
+  transition: transform 0.25s ease;
+  max-height: 70vh;
+}
+
+body.is-mobile .exam-sheet-col.is-open {
+  transform: translateY(0);
+}
+
+body.is-mobile .exam-sheet-col .content-h {
+  height: 70vh !important;
+  max-height: 70vh;
+}
+
+body.is-mobile .exam-question-col {
+  width: 100% !important;
+}
+
+body.is-mobile .exam-question-col .content-h {
+  height: auto !important;
+  min-height: calc(100vh - 180px);
+}
+
+body.is-mobile .exam-sheet-mask {
+  display: block;
+  position: fixed;
+  z-index: 1999;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+body.is-mobile .exam-sheet-toggle {
+  display: block;
+  position: fixed;
+  z-index: 1500;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 20px;
+  background: #409eff;
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+}
+
+body.is-mobile .exam-sheet-col .el-tag[style] {
+  width: 36px !important;
+}
+
+.pc-only-tip {
+  display: none;
+  background: #fff7e6;
+  color: #e6a23c;
+  font-size: 12px;
+  line-height: 32px;
+  text-align: center;
+}
+
+body.is-mobile .pc-only-tip {
+  display: block;
+}
+
+@media screen and (max-width: $mobile-width) {
+  .login-container .login-form {
+    width: 100% !important;
+    padding: 72px 20px 80px !important;
+    box-sizing: border-box;
+  }
+
+  .login-container .captcha-row {
+    flex-wrap: wrap;
+  }
+
+  .login-container .captcha-row .el-input {
+    width: 100% !important;
+  }
+}

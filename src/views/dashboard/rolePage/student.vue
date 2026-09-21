@@ -182,4 +182,24 @@ export default {
   align-items: flex-end;
   padding-left: 20px;
 }
+
+@media screen and (max-width: 991px) {
+  .app-container {
+    height: auto;
+    min-height: calc(100vh - 50px);
+    flex-direction: column;
+    transform: none;
+    align-items: stretch;
+    padding: 12px;
+  }
+  .right,
+  .left {
+    width: 100%;
+    height: auto;
+    margin-bottom: 12px;
+  }
+  .box-card .chart-div {
+    height: 240px;
+  }
+}
 </style>

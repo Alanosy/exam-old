@@ -18,6 +18,7 @@ import echarts from 'echarts'
 import App from './App'
 import store from './store'
 import router from './router'
+import deviceMixin from '@/mixin/device'
 import '@/icons' // icon
 import '@/permission' // permission control
 import axios from 'axios'
@@ -96,6 +97,7 @@ Vue.use(ElementUI, { locale })
 // Vue.use(ElementUI)
 
 Vue.config.productionTip = false
+Vue.mixin(deviceMixin)
 
 // 将 WebSocket 相关方法挂载到 Vue 原型上
 Vue.prototype.$connectWebSocket = connectWebSocket

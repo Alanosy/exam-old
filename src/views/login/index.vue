@@ -54,15 +54,14 @@
         </span>
       </el-form-item>
 
-      <div style="display: flex">
-        <el-form-item prop="code">
+      <div class="captcha-row">
+        <el-form-item prop="code" class="captcha-item">
           <span class="svg-container">
             <svg-icon icon-class="code" />
           </span>
           <el-input
             ref="codeInput"
             v-model="loginForm.code"
-            style="width: 300px"
             placeholder="验证码"
             name="code"
             type="text"
@@ -73,8 +72,8 @@
         </el-form-item>
         <img
           ref="captchaImg"
+          class="captcha-img"
           src="/api/auths/captcha"
-          style="margin-left: 20px; height: 47px"
           alt=""
           @click="getVerify"
         >
@@ -111,7 +110,6 @@
 import { validUsername } from '@/utils/validate'
 import { getTokenInfo } from '@/utils/jwtUtils'
 import { verifyCode } from '@/api/user'
-import { Message } from 'element-ui'
 import { Encrypt } from '@/utils/Secret'
 export default {
   name: 'Login',
@@ -188,41 +186,32 @@ export default {
       })
     },
     handleLogin() {
-      verifyCode(this.loginForm.code).then((res) => {
-        if (res.code) {
-          this.$refs.loginForm.validate((valid) => {
-            if (valid) {
-              this.loading = true
-              const loginData = {
-                username: this.loginForm.username,
-                password: Encrypt(this.loginForm.password)
-              }
-              this.$store
-                .dispatch('user/login', loginData)
-                .then(() => {
-                  this.$store.commit('menu/CLOSE_SIDEBAR')
-                  const userInfo = getTokenInfo()
-                  this.$store.dispatch('loginUser', { id: userInfo.id })
-                  this.$router.push(this.redirect || '/index')
-
-                  this.loading = false
-                })
-                .catch((error) => {
-                  this.getVerify()
-                  Message.error(error.msg)
-                  this.loading = false
-                })
-            } else {
-              return false
-            }
+      if (this.loading) {
+        return
+      }
+      this.$refs.loginForm.validate(async(valid) => {
+        if (!valid) {
+          return
+        }
+        this.loading = true
+        try {
+          const res = await verifyCode(this.loginForm.code)
+          if (!res || res.code !== 1) {
+            return
+          }
+          await this.$store.dispatch('user/login', {
+            username: this.loginForm.username,
+            password: Encrypt(this.loginForm.password)
           })
-        } else {
-          this.loginForm.code = '' // 清空验证码输入框
+          this.$store.commit('menu/CLOSE_SIDEBAR')
+          const userInfo = getTokenInfo()
+          this.$store.dispatch('loginUser', { id: userInfo.id })
+          this.$router.push(this.redirect || '/index')
+        } catch (e) {
+          this.loginForm.code = ''
           this.getVerify()
-          this.$message({
-            type: 'info',
-            message: res.msg
-          })
+        } finally {
+          this.loading = false
         }
       })
     }
@@ -286,6 +275,23 @@ $light_gray: #eee;
   background-color: $bg;
   overflow: hidden;
 
+  .captcha-row {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .captcha-item {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .captcha-img {
+    margin-left: 12px;
+    height: 47px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
   .login-form {
     position: relative;
     width: 520px;
@@ -293,6 +299,7 @@ $light_gray: #eee;
     padding: 160px 35px 0;
     margin: 0 auto;
     overflow: hidden;
+    box-sizing: border-box;
   }
 
   .tips {
