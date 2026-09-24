@@ -10,9 +10,10 @@
   }
 
   .sidebar-container {
-    transition: width 0.28s;
+    transition: width 0.28s, box-shadow 0.28s;
     width: variables.$sideBarWidth !important;
-    background-color: variables.$menuBg;
+    background:
+      linear-gradient(180deg, #10192b 0%, variables.$menuBg 48%, #070d18 100%);
     height: 100%;
     position: fixed;
     font-size: 0px;
@@ -21,8 +22,9 @@
     left: 0;
     z-index: 1001;
     overflow: hidden;
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.12);
+    border-right: 1px solid rgba(148, 163, 184, 0.08);
 
-    // reset element-ui css
     .horizontal-collapse-transition {
       transition: 0s width ease-in-out, 0s padding-left ease-in-out, 0s padding-right ease-in-out;
     }
@@ -34,16 +36,14 @@
     .el-scrollbar__bar.is-vertical {
       right: 0px;
     }
-    // .el-menu-item{
-    //   font-size: 14px;
-    // }
+
     .el-scrollbar {
       height: 100%;
     }
 
     &.has-logo {
       .el-scrollbar {
-        height: calc(100% - 50px);
+        height: calc(100% - 64px);
       }
     }
 
@@ -58,7 +58,7 @@
     }
 
     .svg-icon {
-      margin-right: 16px;
+      margin-right: 14px;
     }
 
     .sub-el-icon {
@@ -70,9 +70,17 @@
       border: none;
       height: 100%;
       width: 100% !important;
+      background: transparent !important;
     }
 
-    // menu hover
+    .el-menu-item,
+    .el-submenu__title {
+      margin: 4px 10px;
+      border-radius: 10px;
+      height: 44px;
+      line-height: 44px;
+    }
+
     .submenu-title-noDropdown,
     .el-submenu__title {
       &:hover {
@@ -84,10 +92,16 @@
       color: variables.$subMenuActiveText !important;
     }
 
+    .el-menu-item.is-active {
+      background: linear-gradient(90deg, rgba(13, 148, 136, 0.28), rgba(13, 148, 136, 0.08)) !important;
+      color: variables.$menuActiveText !important;
+      box-shadow: inset 3px 0 0 #2dd4bf;
+    }
+
     & .nest-menu .el-submenu>.el-submenu__title,
     & .el-submenu .el-menu-item {
-      min-width: variables.$sideBarWidth !important;
-      background-color: variables.$subMenuBg !important;
+      min-width: calc(#{variables.$sideBarWidth} - 20px) !important;
+      background-color: transparent !important;
 
       &:hover {
         background-color: variables.$subMenuHover !important;
@@ -98,6 +112,12 @@
   .hideSidebar {
     .sidebar-container {
       width: 54px !important;
+
+      .el-menu-item,
+      .el-submenu__title {
+        margin: 4px 0;
+        border-radius: 0;
+      }
     }
 
     .main-container {
@@ -160,7 +180,6 @@
     min-width: variables.$sideBarWidth !important;
   }
 
-  // mobile responsive
   .mobile {
     .main-container {
       margin-left: 0px;
@@ -189,7 +208,6 @@
   }
 }
 
-// when menu collapsed
 .el-menu--vertical {
   &>.el-menu {
     .svg-icon {
@@ -204,15 +222,15 @@
   .nest-menu .el-submenu>.el-submenu__title,
   .el-menu-item {
     &:hover {
-      // you can use $subMenuHover
       background-color: variables.$menuHover !important;
     }
   }
 
-  // the scroll bar appears when the subMenu is too long
   >.el-menu--popup {
     max-height: 100vh;
     overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
 
     &::-webkit-scrollbar-track-piece {
       background: #d3dce6;

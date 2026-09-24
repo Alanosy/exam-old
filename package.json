@@ -15,8 +15,10 @@
   },
   "dependencies": {
     "axios": "0.18.1",
+    "canvg": "^4.0.3",
     "core-js": "^3.37.1",
     "crypto-js": "^4.2.0",
+    "dompurify": "^3.3.1",
     "echarts": "^4.9.0",
     "element-ui": "2.13.2",
     "html2canvas": "^1.4.1",

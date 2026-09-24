@@ -1,19 +1,23 @@
-@use 'variables.scss';
+@use 'variables.scss' as vars;
 @use 'mixin.scss';
 @use 'transition.scss';
 @use 'element-ui.scss';
 @use 'sidebar.scss';
+@use 'page.scss';
+@use 'mobile.scss';
 
 body {
   height: 100%;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", system-ui, sans-serif;
+  color: vars.$textPrimary;
+  background: vars.$pageBg;
 }
 
 label {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 html {
@@ -59,19 +63,9 @@ div:focus {
   }
 }
 
-// main-container global css
-// .app-container {
-//   padding: 20px;
-// }
-
-//main-container全局样式
-.app-container {
-  padding: 30px;
-}
-
 .pagination-container {
-  background: #fff;
-  padding: 32px 16px;
+  background: transparent;
+  padding: 20px 8px 8px;
 }
 
 .el-table .cell {
@@ -80,4 +74,15 @@ div:focus {
   -webkit-line-clamp: 2;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.main-container {
+  background:
+    radial-gradient(ellipse 55% 35% at 100% 0%, rgba(45, 212, 191, 0.1), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 0% 100%, rgba(56, 189, 248, 0.06), transparent 50%),
+    vars.$pageBg;
+}
+
+.app-main {
+  background: transparent;
 }

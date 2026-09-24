@@ -1,18 +1,18 @@
 <template>
   <div class="navbar">
-    <div style="width:100%;height:66px;box-shadow: rgb(0 21 41 / 9%) 0px 1px 4px;}">
+    <div class="navbar-inner">
       <hamburger
         :is-active="sidebar.opened"
         class="hamburger-container"
         @toggleClick="toggleSideBar"
       />
 
-      <breadcrumb class="breadcrumb-container" />
+      <breadcrumb v-if="!isMobile" class="breadcrumb-container" />
 
       <div class="right-menu">
         <el-dropdown class="avatar-container" trigger="click">
           <div class="avatar-wrapper">
-            <img :src="user.avatar" class="user-avatar">
+            <img :src="displayAvatar" class="user-avatar" referrerpolicy="no-referrer">
             <i class="el-icon-caret-bottom" />
           </div>
           <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -32,14 +32,8 @@
     </div>
     <!-- tags -->
     <div
-      style="
-        width: 100%;
-        height: 45px;
-        background-color: write;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-      "
+      v-if="!isMobile"
+      class="tags-bar"
     >
       <template v-for="(item,index) in tags">
         <el-tag
@@ -47,7 +41,6 @@
           :key="index"
           closable
           disable-transitions
-          style="border: 1px solid #cacaca"
           :class="{ active: item.checked }"
           @click="$router.push(item.path)"
           @close="handleTagClose(item)"
@@ -77,10 +70,14 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['sidebar', 'avatar', 'tags'])
+    ...mapGetters(['sidebar', 'avatar', 'tags']),
+    displayAvatar() {
+      return this.avatar || (this.user && this.user.avatar) || ''
+    }
   },
   created() {
     this.decode()
+    this.loadLatestAvatar()
   },
   methods: {
     handleTagClose(item) {
@@ -101,6 +98,13 @@ export default {
       const user = parseJwt(token)
       this.user = JSON.parse(user.userInfo)
     },
+    async loadLatestAvatar() {
+      try {
+        await this.$store.dispatch('user/getInfo')
+      } catch (e) {
+        // 接口失败时仍使用 token 中的头像
+      }
+    },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
@@ -115,45 +119,76 @@ export default {
 
 <style lang="scss" scoped>
 .el-tag {
-  background-color: #ffffff;
-  border-color: #cacaca;
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
   display: inline-block;
-  height: 32px;
-  padding: 0 10px;
-  line-height: 30px;
-  margin-left: 5px;
+  height: 30px;
+  padding: 0 12px;
+  line-height: 28px;
+  margin-left: 8px;
   font-size: 12px;
-  color: #000000;
-  border-width: 1.5px;
+  color: #475569;
+  border-width: 1px;
   border-style: solid;
-  border-radius: 3px;
-  -webkit-box-sizing: border-box;
+  border-radius: 999px;
   box-sizing: border-box;
   white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #99f6e4;
+    color: #0f766e;
+  }
 }
 
 .active {
-  background-color: #58b289;
-  color: rgb(255, 255, 255);
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.28);
+}
+
+.tags-bar {
+  width: 100%;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0 8px 0 4px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.navbar-inner {
+  width: 100%;
+  height: 58px;
+  display: flex;
+  align-items: center;
 }
 
 .navbar {
-  height: 110px;
+  height: 100px;
   overflow: hidden;
   position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgb(0 21 41 / 16%);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 
   .hamburger-container {
-    line-height: 46px;
+    line-height: 58px;
     height: 100%;
     float: left;
     cursor: pointer;
     transition: background 0.3s;
     -webkit-tap-highlight-color: transparent;
+    border-radius: 10px;
+    margin-left: 6px;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.025);
+      background: rgba(13, 148, 136, 0.08);
     }
   }
 
@@ -162,9 +197,11 @@ export default {
   }
 
   .right-menu {
-    float: right;
+    margin-left: auto;
     height: 100%;
-    line-height: 50px;
+    line-height: 58px;
+    display: flex;
+    align-items: center;
 
     &:focus {
       outline: none;
@@ -189,25 +226,33 @@ export default {
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 18px;
 
       .avatar-wrapper {
-        margin-top: 5px;
         position: relative;
+        display: flex;
+        align-items: center;
 
         .user-avatar {
           cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          border: 2px solid #e2e8f0;
+          object-fit: cover;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+          &:hover {
+            border-color: #5eead4;
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+          }
         }
 
         .el-icon-caret-bottom {
           cursor: pointer;
-          position: absolute;
-          right: -20px;
-          top: 25px;
+          margin-left: 6px;
           font-size: 12px;
+          color: #94a3b8;
         }
       }
     }

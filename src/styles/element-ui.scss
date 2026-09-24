@@ -1,4 +1,5 @@
 // cover some element-ui styles
+@use 'variables.scss' as vars;
 
 .el-breadcrumb__inner,
 .el-breadcrumb__inner a {
@@ -14,17 +15,52 @@
 .el-upload__input {
   display: none;
 }
-$--table-border:1px solid#dfe6ec;
 
-// to fixed https://github.com/ElemeFE/element/issues/2461
+$--table-border: 1px solid #e2e8f0;
+
 .el-dialog {
   transform: none;
   left: 0;
   position: relative;
   margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
+  background: #fff;
 }
 
-// refine element ui upload
+/* 保证弹窗始终在遮罩之上，避免整层发灰不可编辑的错觉 */
+.v-modal {
+  z-index: 2000 !important;
+  opacity: 0.45 !important;
+}
+
+.el-dialog__wrapper {
+  z-index: 2001 !important;
+}
+
+.el-dialog__header {
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+.el-dialog__title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.el-dialog__body {
+  padding: 18px 20px 22px;
+  background: #fff;
+}
+
+.el-dialog__footer {
+  background: #fff;
+  border-top: 1px solid #f8fafc;
+  padding: 12px 20px 16px;
+}
+
 .upload-container {
   .el-upload {
     width: 100%;
@@ -32,18 +68,124 @@ $--table-border:1px solid#dfe6ec;
     .el-upload-dragger {
       width: 100%;
       height: 200px;
+      border-radius: 12px;
     }
   }
 }
 
-// dropdown
 .el-dropdown-menu {
   a {
-    display: block
+    display: block;
   }
 }
 
-// to fix el-date-picker css style
 .el-range-separator {
   box-sizing: content-box;
+}
+
+.el-button {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.el-button--primary {
+  background-color: vars.$primary;
+  border-color: vars.$primary;
+
+  &:hover,
+  &:focus {
+    background-color: vars.$primaryHover;
+    border-color: vars.$primaryHover;
+  }
+
+  &.is-plain {
+    color: vars.$primary;
+    background: vars.$primarySoft;
+    border-color: rgba(13, 148, 136, 0.35);
+
+    &:hover,
+    &:focus {
+      background: vars.$primary;
+      border-color: vars.$primary;
+      color: #fff;
+    }
+  }
+}
+
+.el-button--success {
+  border-radius: 8px;
+}
+
+.el-table {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+
+  th {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+  }
+
+  td {
+    color: #334155;
+  }
+}
+
+.el-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: vars.$shadow;
+  overflow: hidden;
+
+  .el-card__header {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 16px 20px;
+    font-weight: 600;
+  }
+}
+
+.el-input__inner,
+.el-textarea__inner {
+  border-radius: 8px;
+  border-color: #e2e8f0;
+
+  &:hover {
+    border-color: #99f6e4;
+  }
+
+  &:focus {
+    border-color: vars.$primary;
+  }
+}
+
+.el-select .el-input.is-focus .el-input__inner {
+  border-color: vars.$primary;
+}
+
+.el-pagination.is-background .el-pager li:not(.disabled).active {
+  background-color: vars.$primary;
+}
+
+.el-tag {
+  border-radius: 6px;
+}
+
+.el-menu-item.is-active {
+  background-color: rgba(13, 148, 136, 0.16) !important;
+}
+
+.el-message-box {
+  border-radius: 14px;
+}
+
+.el-dropdown-menu {
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  padding: 6px;
+}
+
+.el-dropdown-menu__item {
+  border-radius: 8px;
 }

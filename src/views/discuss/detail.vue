@@ -249,8 +249,10 @@ export default {
   position: relative;
   padding-top: 25px;
   width: 1200px;
+  max-width: 100%;
   min-height: 600px;
   margin: 30px auto;
+  box-sizing: border-box;
   .noticeDetail_detail {
     background-color: #f5f6f8;
     margin: 16px auto;
@@ -307,4 +309,25 @@ export default {
   }
 }
 
+@media screen and (max-width: 991px) {
+  .subPageMain {
+    width: 100%;
+    margin: 12px auto;
+    padding: 12px;
+  }
+  .noticeDetail_detail .noticeDetail_head {
+    flex-direction: column;
+    padding: 16px;
+    gap: 8px;
+  }
+  .noticeDetail_detail .noticeDetail_main {
+    padding: 12px 16px 20px;
+  }
+  .editContainer {
+    width: 100%;
+  }
+  .radio-class {
+    margin-left: 0;
+  }
+}
 </style>

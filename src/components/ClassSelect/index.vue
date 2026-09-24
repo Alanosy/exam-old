@@ -37,7 +37,7 @@ export default {
       default: false
     },
     // eslint-disable-next-line vue/require-default-prop
-    value: [String, Array],
+    value: [String, Number, Array],
     // eslint-disable-next-line vue/require-default-prop
     excludes: Array // 如果有需要排除的班级ID，可以传入此参数
   },

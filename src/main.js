@@ -18,6 +18,7 @@ import echarts from 'echarts'
 import App from './App'
 import store from './store'
 import router from './router'
+import deviceMixin from '@/mixin/device'
 import '@/icons' // icon
 import '@/permission' // permission control
 import axios from 'axios'
@@ -90,12 +91,15 @@ axios.defaults.withCredentials = true
 Vue.use(htmlToPdf)
 // 富文本
 Vue.use(VueQuillEditor /* { default global options } */)
+// 弹窗挂到 body，避免被页面层叠上下文压在遮罩下方发灰
+ElementUI.Dialog.props.appendToBody.default = true
 // set ElementUI lang to EN
 Vue.use(ElementUI, { locale })
 // 如果想要中文版 element-ui，按如下方式声明
 // Vue.use(ElementUI)
 
 Vue.config.productionTip = false
+Vue.mixin(deviceMixin)
 
 // 将 WebSocket 相关方法挂载到 Vue 原型上
 Vue.prototype.$connectWebSocket = connectWebSocket

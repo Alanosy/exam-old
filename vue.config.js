@@ -39,7 +39,7 @@ module.exports = {
       warnings: false,
       errors: true
     },
-    // 前端跨域
+    // 前端跨域 - 生产环境直接连接本地后端
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8080',

@@ -310,11 +310,6 @@ export default {
 </script>
 
 <style>
-.el-table--border,
-.el-table--group {
-  border: 1px solid #b3b3b3;
-}
-
 .bj {
   margin-top: 40px;
   margin-left: 30px;

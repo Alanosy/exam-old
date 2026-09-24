@@ -1,0 +1,226 @@
+@use 'variables.scss' as vars;
+
+/* 管理端主内容区：筛选卡 + 表格卡 */
+.app-container {
+  padding: 20px 24px 28px;
+
+  /* 顶部筛选 / 操作栏 */
+  > .el-form--inline,
+  > .el-form.demo-form-inline,
+  > .demo-form-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 4px 8px;
+    margin-bottom: 16px;
+    padding: 16px 18px 6px;
+    background: #fff;
+    border: 1px solid vars.$borderColor;
+    border-radius: 16px;
+    box-shadow: vars.$shadow;
+
+    .el-form-item {
+      margin-bottom: 12px;
+      margin-right: 12px;
+    }
+
+    .el-form-item__label {
+      color: #64748b;
+      font-weight: 500;
+      padding-right: 8px;
+    }
+
+    .el-input__inner,
+    .el-select .el-input__inner {
+      border-color: #e2e8f0;
+      background: #f8fafc;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+      &:hover {
+        border-color: #99f6e4;
+        background: #fff;
+      }
+
+      &:focus {
+        border-color: vars.$primary;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.12);
+      }
+    }
+
+    .el-button + .el-button {
+      margin-left: 8px;
+    }
+
+    .el-button--primary {
+      box-shadow: 0 6px 14px rgba(13, 148, 136, 0.18);
+    }
+  }
+
+  /* 表格外层卡片感 */
+  > .el-table,
+  > .el-table--fit,
+  > .el-table--border {
+    width: 100%;
+    margin-bottom: 8px;
+    background: #fff;
+    border: 1px solid vars.$borderColor !important;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: vars.$shadow;
+
+    &::before,
+    &::after {
+      display: none !important;
+    }
+  }
+
+  > .el-pagination,
+  > .pagination-container {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid vars.$borderColor;
+    border-radius: 14px;
+    box-shadow: vars.$shadow;
+  }
+
+  .el-button--text {
+    font-weight: 500;
+    padding: 0 6px;
+    border-radius: 6px;
+
+    &:hover {
+      background: rgba(13, 148, 136, 0.08);
+    }
+
+    &[style*="red"],
+    &[style*="color: red"],
+    &[style*="color:red"] {
+      color: #e11d48 !important;
+
+      &:hover {
+        background: rgba(225, 29, 72, 0.08);
+      }
+    }
+  }
+
+  .el-button--text:not([style*="red"]) {
+    color: vars.$primary;
+  }
+
+  .el-select .el-input.is-focus .el-input__inner,
+  .el-select .el-input__inner:focus {
+    border-color: vars.$primary;
+  }
+
+  .el-checkbox__input.is-checked .el-checkbox__inner,
+  .el-checkbox__input.is-indeterminate .el-checkbox__inner {
+    background-color: vars.$primary;
+    border-color: vars.$primary;
+  }
+
+  .el-checkbox__inner:hover {
+    border-color: vars.$primary;
+  }
+}
+
+.el-table {
+  color: #334155;
+  font-size: 13px;
+
+  th.el-table__cell,
+  th.is-leaf,
+  .el-table__header-wrapper th {
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  td {
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #334155;
+    padding: 10px 0;
+  }
+
+  .cell {
+    line-height: 1.5;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  tr:hover > td {
+    background: #f0fdfa !important;
+  }
+
+  .el-table__body tr.current-row > td {
+    background: #ccfbf1 !important;
+  }
+
+  &.el-table--striped .el-table__body tr.el-table__row--striped td {
+    background: #f8fafc;
+  }
+}
+
+.el-table--border,
+.el-table--group {
+  border-color: vars.$borderColor !important;
+
+  &::after {
+    background-color: transparent !important;
+  }
+
+  th,
+  td {
+    border-right: 1px solid #f1f5f9 !important;
+  }
+}
+
+.el-table--border th.gutter:last-of-type {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.el-table__fixed-right::before,
+.el-table__fixed::before {
+  background-color: #e2e8f0;
+}
+
+.el-pagination {
+  font-weight: 500;
+
+  button,
+  .el-pager li {
+    border-radius: 8px !important;
+  }
+
+  .el-pager li.active {
+    background-color: vars.$primary !important;
+    color: #fff !important;
+  }
+
+  .btn-next,
+  .btn-prev {
+    background: #f8fafc;
+  }
+}
+
+.el-pagination.is-background .el-pager li:not(.disabled).active {
+  background-color: vars.$primary !important;
+}
+
+.app-breadcrumb.el-breadcrumb {
+  .no-redirect {
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  a {
+    color: #94a3b8;
+    font-weight: 500;
+
+    &:hover {
+      color: vars.$primary;
+    }
+  }
+}

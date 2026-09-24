@@ -24,6 +24,7 @@
                         :preview-src="[index.image]" 
                         style="height: 100px;" />
                       </div>
+                      <audio-player :src="index.audio" />
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
                         <!-- ['A', 'B', 'C', 'D'] -->
@@ -84,6 +85,7 @@
                         <!-- 【 单选题 】 -->
                         <div class="qu_content">{{ index.title }}</div>
                       </div>
+                      <audio-player :src="index.audio" />
 
                       <!-- 选项 -->
                       <el-radio-group class="qu_choose_group">
@@ -141,8 +143,10 @@
 
 <script>
 import { recordExerciseDetail } from '@/api/record'
+import AudioPlayer from '@/components/AudioPlayer'
 export default {
   name: 'ExamProcess',
+  components: { AudioPlayer },
   data() {
     return {
       input: '',
@@ -258,6 +262,12 @@ export default {
 .right {
   width: 70%;
   height: 100%;
+}
+
+@media screen and (max-width: 991px) {
+  .right {
+    width: 100%;
+  }
 }
 .el-divider--horizontal {
   display: block;

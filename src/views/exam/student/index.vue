@@ -20,9 +20,8 @@
       />
     </div>
 
-    <!-- table -->
-
     <el-table
+      v-if="!isMobile"
       :data="data.records"
       border
       fit
@@ -62,12 +61,31 @@
       </el-table-column>
     </el-table>
 
+    <div v-else class="h5-card-list">
+      <div v-if="!(data.records && data.records.length)" class="h5-card-empty">暂无试卷</div>
+      <div v-for="(row, index) in (data.records || [])" :key="row.id || index" class="h5-card">
+        <div class="h5-card-title">{{ row.title }}</div>
+        <div class="h5-card-row"><span>考试时长</span><span>{{ row.examDuration }} 分钟</span></div>
+        <div class="h5-card-row"><span>总分 / 及格</span><span>{{ row.grossScore }} / {{ row.passedScore }}</span></div>
+        <div class="h5-card-row"><span>开始时间</span><span>{{ row.startTime }}</span></div>
+        <div class="h5-card-row"><span>结束时间</span><span>{{ row.endTime }}</span></div>
+        <div class="h5-card-actions">
+          <el-button
+            :type="getExamStatus(row).type"
+            :disabled="getExamStatus(row).disabled"
+            size="small"
+            @click="screenInfo(row)"
+          >{{ getExamStatus(row).text }}</el-button>
+        </div>
+      </div>
+    </div>
+
     <div class="pagination-container">
       <el-pagination
         :current-page="data.current"
         :page-sizes="[10, 20, 30, 40]"
         :page-size="data.size"
-        layout="total, sizes, prev, pager, next, jumper"
+        :layout="paginationLayout"
         :total="data.total"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"

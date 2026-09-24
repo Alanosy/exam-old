@@ -7,7 +7,7 @@
         <div class="stat-card">
           <div class="icon-container">
             <el-image
-              style="width: 50px; height: 50px; margin-top: 10px"
+              style="width: 36px; height: 36px"
               :src="iconUrl.gradeImgUrl"
             />
           </div>
@@ -21,7 +21,7 @@
         <div class="stat-card">
           <div class="icon-container">
             <el-image
-              style="width: 50px; height: 50px; margin-top: 10px"
+              style="width: 36px; height: 36px"
               :src="iconUrl.questionImgUrl"
             />
           </div>
@@ -35,7 +35,7 @@
         <div class="stat-card">
           <div class="icon-container">
             <el-image
-              style="width: 50px; height: 50px; margin-top: 10px"
+              style="width: 36px; height: 36px"
               :src="iconUrl.examImgUrl"
             />
           </div>
@@ -101,6 +101,20 @@ export default {
       // 图表实例
       classChartInstance: null,
       examChartInstance: null
+    }
+  },
+
+  watch: {
+    loading(val) {
+      if (!val && !this.error) {
+        this.$nextTick(() => {
+          if (!this.classChartInstance || !this.examChartInstance) {
+            this.initCharts()
+          } else {
+            this.handleResize()
+          }
+        })
+      }
     }
   },
 
@@ -204,11 +218,15 @@ export default {
     // 初始化图表
     initCharts() {
       this.$nextTick(() => {
-        // 确保DOM已经渲染
-        this.classChartInstance = echarts.init(this.$refs.classChart)
-        this.examChartInstance = echarts.init(this.$refs.examChart)
-
-        // 设置图表配置
+        if (!this.$refs.classChart || !this.$refs.examChart) {
+          return
+        }
+        if (!this.classChartInstance) {
+          this.classChartInstance = echarts.init(this.$refs.classChart)
+        }
+        if (!this.examChartInstance) {
+          this.examChartInstance = echarts.init(this.$refs.examChart)
+        }
         this.updateClassChart()
         this.updateExamChart()
       })
@@ -254,222 +272,212 @@ export default {
       }
     },
 
-    // 更新班级人数分布图表
-    updateClassChart() {
-      if (!this.classChartInstance) return
-
-      const option = {
-        // 标题
+    getPieOption({ title, seriesName, data, legendData, colors }) {
+      const isEmpty = !data || data.length === 0 || (data.length === 1 && data[0].name === '暂无数据')
+      return {
         title: {
-          text: '班级人数分布',
-          x: 'center' // 标题位置
-          // textStyle: { //标题内容的样式
-          //   color: '#000',
-          //   fontStyle: 'normal',
-          //   fontWeight: 100,
-          //   fontSize: 16 //主题文字字体大小，默认为18px
-          // },
+          text: title,
+          left: 20,
+          top: 12,
+          textStyle: {
+            color: '#0f172a',
+            fontSize: 16,
+            fontWeight: 600
+          }
         },
-        // stillShowZeroSum: true,
-        // 鼠标划过时饼状图上显示的数据
         tooltip: {
           trigger: 'item',
-          formatter: '{a}<br/>{b}:{c} ({d}%)'
+          formatter: '{a}<br/>{b}：{c} ({d}%)'
         },
-        // 图例
         legend: {
-          // 图例  标注各种颜色代表的模块
-          // orient: 'vertical',//图例的显示方式  默认横向显示
-          bottom: 10, // 控制图例出现的距离  默认左上角
-          left: 'center', // 控制图例的位置
-          // itemWidth: 16,//图例颜色块的宽度和高度
-          // itemHeight: 12,
-          textStyle: {
-            // 图例中文字的样式
-            color: '#000',
-            fontSize: 16
+          type: 'scroll',
+          orient: 'vertical',
+          right: 12,
+          top: 56,
+          bottom: 24,
+          itemWidth: 12,
+          itemHeight: 12,
+          itemGap: 10,
+          pageIconSize: 12,
+          pageTextStyle: {
+            color: '#909399'
           },
-          data: this.chartDataTitle
-          // ["一班", "二班", "三班", "四班"], //图例上显示的饼图各模块上的名字
+          textStyle: {
+            color: '#606266',
+            fontSize: 12
+          },
+          formatter: (name) => {
+            const item = (data || []).find((entry) => entry.name === name)
+            if (!item || isEmpty) {
+              return name
+            }
+            return name.length > 10 ? `${name.slice(0, 10)}...  ${item.value}` : `${name}  ${item.value}`
+          },
+          tooltip: {
+            show: true
+          },
+          data: legendData
         },
-        // 饼图中各模块的颜色
-        color: ['#32dadd', '#b6a2de', '#5ab1ef', '#454599'],
+        color: colors,
         series: {
-          name: '班级人数',
-          type: 'pie', // echarts图的类型   pie代表饼图
-          radius: '60%', // 饼图中饼状部分的大小所占整个父元素的百分比
-          center: ['50%', '50%'], // 整个饼图在整个父元素中的位置
-          // data:''               //饼图数据
-          data: this.chartData,
+          name: seriesName,
+          type: 'pie',
+          radius: ['38%', '62%'],
+          center: ['36%', '55%'],
+          minAngle: 3,
+          avoidLabelOverlap: true,
+          data,
+          label: {
+            normal: {
+              show: !isEmpty,
+              formatter: (params) => (params.percent >= 8 ? `${params.name}\n${params.percent}%` : ''),
+              fontSize: 12,
+              color: '#606266'
+            }
+          },
+          labelLine: {
+            normal: {
+              show: true,
+              length: 10,
+              length2: 8
+            }
+          },
           itemStyle: {
             normal: {
-              label: {
-                show: true // 饼图上是否出现标注文字 标注各模块代表什么  默认是true
-                // position: 'inner',//控制饼图上标注文字相对于饼图的位置  默认位置在饼图外
-              },
-              labelLine: {
-                show: true // 官网demo里外部标注上的小细线的显示隐藏    默认显示
-              }
+              borderColor: '#fff',
+              borderWidth: 2
             }
           }
         }
       }
+    },
 
-      this.classChartInstance.setOption(option)
+    // 更新班级人数分布图表
+    updateClassChart() {
+      if (!this.classChartInstance) return
+      this.classChartInstance.setOption(this.getPieOption({
+        title: '班级人数分布',
+        seriesName: '班级人数',
+        data: this.chartData,
+        legendData: this.chartDataTitle,
+        colors: [
+          '#14b8a6', '#0ea5e9', '#38bdf8', '#2dd4bf', '#f59e0b',
+          '#fb7185', '#64748b', '#22c55e', '#06b6d4', '#a3e635',
+          '#0d9488', '#0284c7', '#f97316', '#ef4444', '#84cc16',
+          '#475569', '#14b8a6', '#36d399', '#60a5fa', '#fbbf24'
+        ]
+      }), true)
     },
 
     // 更新班级试卷分布图表
     updateExamChart() {
       if (!this.examChartInstance) return
-
-      const option = {
-        title: {
-          text: '班级试卷分布',
-          x: 'center' // 标题位置
-          // textStyle: { //标题内容的样式
-          //   color: '#000',
-          //   fontStyle: 'normal',
-          //   fontWeight: 100,
-          //   fontSize: 16 //主题文字字体大小，默认为18px
-          // },
-        },
-        // stillShowZeroSum: true,
-        // 鼠标划过时饼状图上显示的数据
-        tooltip: {
-          trigger: 'item',
-          formatter: '{a}<br/>{b}:{c} ({d}%)'
-        },
-        // 图例
-        legend: {
-          // 图例  标注各种颜色代表的模块
-          // orient: 'vertical',//图例的显示方式  默认横向显示
-          bottom: 10, // 控制图例出现的距离  默认左上角
-          left: 'center', // 控制图例的位置
-          // itemWidth: 16,//图例颜色块的宽度和高度
-          // itemHeight: 12,
-          textStyle: {
-            // 图例中文字的样式
-            color: '#000',
-            fontSize: 16
-          },
-          data: this.chartDataTitle2
-          // ["", "", "", ""], //图例上显示的饼图各模块上的名字
-        },
-        // 饼图中各模块的颜色
-        color: [
-          'rgb(253, 133, 133)',
-          'rgb(172, 10, 172)',
-          'rgb(70, 35, 194)',
-          'rgb(44, 199, 23)'
-        ],
-        // 饼图数据
-        series: {
-          name: '试卷数量',
-          type: 'pie',
-          radius: '60%',
-          center: ['50%', '50%'],
-          data: this.chartData2,
-          itemStyle: {
-            normal: {
-              label: {
-                show: true // 饼图上是否出现标注文字 标注各模块代表什么  默认是true
-                // position: 'inner',//控制饼图上标注文字相对于饼图的位置  默认位置在饼图外
-              },
-              labelLine: {
-                show: true // 官网demo里外部标注上的小细线的显示隐藏    默认显示
-              }
-            }
-          }
-        }
-      }
-
-      this.examChartInstance.setOption(option)
+      this.examChartInstance.setOption(this.getPieOption({
+        title: '班级试卷分布',
+        seriesName: '试卷数量',
+        data: this.chartData2,
+        legendData: this.chartDataTitle2,
+        colors: [
+          '#f43f5e', '#0d9488', '#0ea5e9', '#22c55e', '#f59e0b',
+          '#64748b', '#06b6d4', '#84cc16', '#fb7185', '#14b8a6',
+          '#0284c7', '#ef4444', '#10b981', '#f97316', '#38bdf8',
+          '#475569', '#2dd4bf', '#eab308', '#dc2626', '#0891b2'
+        ]
+      }), true)
     }
   }
 }
 </script>
 
 <style scoped>
-/* 统计卡片容器 */
 .stats-container {
-  margin: auto;
-  border-radius: 16px;
+  margin: 8px auto 0;
+  border-radius: 18px;
   width: 100%;
-  padding: 20px;
-  margin-top: 30px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
-  background-color: #fff;
+  padding: 22px 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(240, 253, 250, 0.9));
 }
 
 .stats-row {
   width: 100%;
-  display: flex;
-  justify-content: space-evenly;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
 }
 
-/* 统计卡片 */
 .stat-card {
-  /* width: 30%;
-  min-width: 250px;
-  height: 80px; */
   display: flex;
-  background-color: #fff;
-  transition: all 0.3s ease;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(13, 148, 136, 0.1);
 }
 
 .icon-container {
   display: flex;
-  transform: translateY(-6px);
   align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ecfeff, #f0fdfa);
+  flex-shrink: 0;
 }
 
 .stat-info {
   display: flex;
-  margin-left: 10px;
   flex-direction: column;
   justify-content: center;
+  min-width: 0;
 }
 
 .stat-title {
-  font-size: 22px;
+  font-size: 14px;
   font-weight: 500;
-  /* padding: 0 0 5px 10px; */
-  color: #333;
+  color: #64748b;
 }
 
 .stat-value {
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 28px;
+  font-weight: 700;
   margin-top: 4px;
-  /* padding: 0 0 0 10px; */
-  color: #409EFF;
+  color: #0f172a;
+  letter-spacing: 0.02em;
 }
 
-/* 图表容器 */
 .charts-container {
   width: 100%;
-  height: 60vh;
   display: flex;
-  margin: auto;
-  margin-top: 30px;
+  margin: 20px auto 0;
   justify-content: space-between;
+  align-items: stretch;
   flex-wrap: wrap;
+  gap: 20px;
 }
 
 .chart-box {
-  width: 48%;
-  min-width: 300px;
-  border-radius: 16px;
-  height: 100%;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
+  width: calc(50% - 10px);
+  min-width: 360px;
+  box-sizing: border-box;
+  border-radius: 18px;
+  height: 560px;
+  padding: 12px 8px 12px 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px rgba(15, 23, 42, 0.05);
   background-color: #fff;
 }
 
-/* 加载状态 */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -480,29 +488,29 @@ export default {
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #409EFF;
+  width: 44px;
+  height: 44px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #0d9488;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
 .loading-text {
-  margin-top: 20px;
-  font-size: 18px;
-  color: #666;
+  margin-top: 18px;
+  font-size: 15px;
+  color: #64748b;
 }
 
-/* 错误提示 */
 .error-message {
   text-align: center;
-  color: #F56C6C;
-  font-size: 18px;
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #FEF0F0;
-  border-radius: 4px;
+  color: #dc2626;
+  font-size: 15px;
+  margin-top: 24px;
+  padding: 16px 20px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
 }
 
 @keyframes spin {
@@ -510,15 +518,16 @@ export default {
   100% { transform: rotate(360deg); }
 }
 
-/* 响应式布局 */
+@media screen and (max-width: 1200px) {
+  .chart-box {
+    width: 100%;
+    height: 520px;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .stats-row {
-    flex-direction: column;
-  }
-
-  .stat-card {
-    /* width: 100%; */
-    /* margin-bottom: 15px; */
+    grid-template-columns: 1fr;
   }
 
   .charts-container {
@@ -527,7 +536,8 @@ export default {
 
   .chart-box {
     width: 100%;
-    height: 400px;
+    min-width: 0;
+    height: 460px;
   }
 }
 </style>

@@ -16,7 +16,7 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="searchRepo">查询</el-button>
-        <el-button type="primary" @click="addRepoDialogVisible = true">新增</el-button>
+        <el-button type="primary" @click="openAddRepo">新增</el-button>
         <el-button type="primary" @click="categoryDialogVisible = true">分类管理</el-button>
       </el-form-item>
     </el-form>
@@ -56,6 +56,14 @@
           </el-tag>
         </template>
       </el-table-column>
+      <el-table-column label="开放班级" align="center">
+        <template slot-scope="{ row }">
+          <el-tag v-if="row.gradeIds && row.gradeIds.length" type="success">
+            已绑定 {{ row.gradeIds.length }} 个班
+          </el-tag>
+          <el-tag v-else type="info">未绑定</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column fixed="right" label="操作" align="center">
         <template slot-scope="{ row }">
           <el-button type="text" size="small" style="font-size: 14px" @click="updateRow(row)">编辑</el-button>
@@ -77,7 +85,7 @@
     <!-- </div> -->
 
     <!-- 新增题库 -->
-    <el-dialog title="新增题库" :visible.sync="addRepoDialogVisible" width="500px">
+    <el-dialog title="新增题库" :visible.sync="addRepoDialogVisible" width="600px">
       <el-form :model="addRepoForm" label-width="100px">
         <el-form-item label="题库名称">
           <el-input v-model="addRepoForm.title" placeholder="请输入题库名称"></el-input>
@@ -95,6 +103,10 @@
         <el-form-item label="是否开启刷题">
           <el-switch v-model="addRepoForm.isExercise"></el-switch>
         </el-form-item>
+        <el-form-item label="开放班级">
+          <ClassSelect v-model="addRepoForm.gradeIds" is-multiple />
+          <div class="grade-tip">不选班级则仅用于组卷，学生刷题不可见</div>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="addRepoDialogVisible = false">取 消</el-button>
@@ -103,7 +115,7 @@
     </el-dialog>
 
     <!-- 编辑题库 -->
-    <el-dialog title="编辑题库" :visible.sync="dialogFormVisible" width="500px">
+    <el-dialog title="编辑题库" :visible.sync="dialogFormVisible" width="600px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="题库名称">
           <el-input v-model="form.title" placeholder="请输入题库名称"></el-input>
@@ -120,6 +132,10 @@
         </el-form-item>
         <el-form-item label="是否开启刷题">
           <el-switch v-model="form.isExercise" :active-value="1" :inactive-value="0"></el-switch>
+        </el-form-item>
+        <el-form-item label="开放班级">
+          <ClassSelect v-model="form.gradeIds" is-multiple />
+          <div class="grade-tip">不选班级则仅用于组卷，学生刷题不可见</div>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -196,8 +212,12 @@
 <script>
 import { repoPaging, repoDel, repoUpdate, repoAdd } from '@/api/repo'
 import { getCategoryTree, addCategory, updateCategory, deleteCategory } from '@/api/category'
+import ClassSelect from '@/components/ClassSelect'
 
 export default {
+  components: {
+    ClassSelect
+  },
   data() {
     return {
       pageNum: 1,
@@ -223,12 +243,14 @@ export default {
       form: {
         title: '',
         isExercise: 0,
-        categoryId: ''
+        categoryId: '',
+        gradeIds: []
       },
       addRepoForm: {
         title: '',
         isExercise: false,
-        categoryId: ''
+        categoryId: '',
+        gradeIds: []
       },
       formLabelWidth: '120px',
       dialogVisible: false,
@@ -323,20 +345,40 @@ export default {
     searchRepo() {
       this.getRepoPage(this.pageNum, this.pageSize, this.searchTitle, this.searchCategory)
     },
+    openAddRepo() {
+      this.addRepoForm = {
+        title: '',
+        isExercise: false,
+        categoryId: '',
+        gradeIds: []
+      }
+      this.addRepoDialogVisible = true
+    },
+    formatGradeIds(gradeIds) {
+      return (gradeIds || []).join(',')
+    },
     updateRow(row) {
       this.dialogFormVisible = true
-      this.form = { ...row }
+      this.form = {
+        ...row,
+        gradeIds: row.gradeIds ? [...row.gradeIds] : []
+      }
     },
     submitAddRepo() {
       if (!this.addRepoForm.title) {
         this.$message.warning('请输入题库名称')
         return
       }
+      const isExercise = this.addRepoForm.isExercise ? 1 : 0
+      if (isExercise === 1 && (!this.addRepoForm.gradeIds || this.addRepoForm.gradeIds.length === 0)) {
+        this.$message.warning('已开启刷题但未选择班级，学生将无法看到该题库')
+      }
 
       const data = {
         'title': this.addRepoForm.title,
-        'isExercise': this.addRepoForm.isExercise ? 1 : 0,
-        'categoryId': this.addRepoForm.categoryId
+        'isExercise': isExercise,
+        'categoryId': this.addRepoForm.categoryId,
+        'gradeIds': this.formatGradeIds(this.addRepoForm.gradeIds)
       }
 
       repoAdd(data)
@@ -352,7 +394,8 @@ export default {
             this.addRepoForm = {
               title: '',
               isExercise: false,
-              categoryId: ''
+              categoryId: '',
+              gradeIds: []
             }
           } else {
             this.$message({
@@ -373,10 +416,15 @@ export default {
         return
       }
 
+      if (this.form.isExercise === 1 && (!this.form.gradeIds || this.form.gradeIds.length === 0)) {
+        this.$message.warning('已开启刷题但未选择班级，学生将无法看到该题库')
+      }
+
       const data = {
         'title': this.form.title,
         'isExercise': this.form.isExercise,
-        'categoryId': this.form.categoryId
+        'categoryId': this.form.categoryId,
+        'gradeIds': this.formatGradeIds(this.form.gradeIds)
       }
 
       repoUpdate(this.form.id, data)
@@ -548,6 +596,12 @@ export default {
 <style scoped>
 .category-header {
   margin-bottom: 15px;
+}
+.grade-tip {
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-top: 4px;
 }
 .pagination-container {
   margin-top: 20px;

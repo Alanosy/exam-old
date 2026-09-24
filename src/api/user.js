@@ -16,6 +16,14 @@ export function classAdd(data) {
   })
 }
 
+export function userUpdate(id, data) {
+  return request({
+    url: 'user/' + id,
+    method: 'put',
+    data
+  })
+}
+
 export function login(data) {
   return request({
     url: 'auths/login',
