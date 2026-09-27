@@ -1106,10 +1106,14 @@ export default {
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   transition: width 0.2s ease;
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+  box-sizing: border-box;
 
   &.collapsed {
     width: 44px;
     padding: 10px 6px;
+    overflow: hidden;
   }
 }
 

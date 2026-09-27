@@ -932,6 +932,11 @@ export default {
   border-radius: 16px;
 }
 
+.exam-form-page {
+  padding-right: 220px;
+  box-sizing: border-box;
+}
+
 .random-repo-table .count-cell {
   display: inline-flex;
   align-items: center;
@@ -970,11 +975,15 @@ export default {
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
   transition: width 0.2s ease;
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+  box-sizing: border-box;
 }
 
 .score-float.collapsed {
   width: 44px;
   padding: 10px 6px;
+  overflow: hidden;
 }
 
 .score-float-head {

@@ -938,8 +938,8 @@ page {
 }
 
 .content-h {
-  height: calc(100vh - 110px);
-  overflow-y: auto;
+  height: auto;
+  overflow: visible;
 }
 
 .card-title {
@@ -1011,7 +1011,6 @@ page {
 }
 .fk {
   width: 200px;
-  height: 100%;
   box-shadow: 0 0 15px rgb(197, 197, 197);
   margin: auto;
   margin-top: 20px;
@@ -1025,11 +1024,10 @@ page {
 
 .left {
   width: 250px;
-  height: 100%;
+  align-self: flex-start;
 }
 .right {
   width: 70%;
-  height: 100%;
 }
 .el-divider--horizontal {
   display: block;
@@ -1044,9 +1042,7 @@ page {
 
 /* // 试题内容样式 */
 .qu_list {
-  height: 100%;
   width: 100%;
-  overflow: auto;
   page-break-after: always;
 
   .qu_num {

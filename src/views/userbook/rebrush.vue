@@ -469,14 +469,13 @@ page {
 }
 
 .content-h {
-  height: calc(100vh - 110px);
-  overflow-y: auto;
+  height: auto;
+  overflow: visible;
 }
 
 @media screen and (max-width: 991px) {
   .content-h {
     height: auto;
-    min-height: calc(100vh - 120px);
   }
 }
 

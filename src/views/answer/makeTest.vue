@@ -1,13 +1,248 @@
 <template>
-  <el-container
-    v-loading="pageLoading"
-    element-loading-text="正在查询请等待"
-    element-loading-spinner="el-icon-loading"
-    element-loading-background="rgba(232, 242, 239, 0.72)"
-    class="page-loading-host make-test-page"
-    style="height: 700px; border: 1px solid #eee"
-  >
-    <div class="left">
+  <div class="make-test-root">
+    <el-container
+      v-loading="pageLoading"
+      element-loading-text="正在查询请等待"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(232, 242, 239, 0.72)"
+      class="page-loading-host make-test-page"
+    >
+      <div class="left-spacer" />
+
+      <el-container class="make-test-main">
+        <el-main class="right" :class="{ 'with-float': !floatCollapsed }">
+          <el-card class="qu_list">
+            <div class="toolbar">
+              <el-button size="mini" icon="el-icon-arrow-down" @click="expandAll">全部展开</el-button>
+              <el-button size="mini" icon="el-icon-arrow-up" @click="collapseAll">全部折叠</el-button>
+              <el-button
+                size="mini"
+                :icon="floatCollapsed ? 'el-icon-s-data' : 'el-icon-close'"
+                @click="floatCollapsed = !floatCollapsed"
+              >{{ floatCollapsed ? '显示详情' : '隐藏详情' }}</el-button>
+            </div>
+
+            <div v-if="!pageLoading && !allQuestions.length" class="empty-tip">暂无题目详情</div>
+            <el-collapse v-model="activeTypes" class="type-collapse">
+              <el-collapse-item
+                v-for="group in typeGroups"
+                :key="'type-' + group.type"
+                :name="String(group.type)"
+              >
+                <template slot="title">
+                  <div class="type-head">
+                    <div class="type-head-main">
+                      <i :class="group.icon" class="type-icon" />
+                      <span class="type-title">{{ group.name }}</span>
+                      <span class="type-count">{{ group.list.length }} 题 · {{ group.earned }}/{{ group.total }} 分</span>
+                    </div>
+                    <p class="type-desc">{{ group.desc }}</p>
+                  </div>
+                </template>
+
+                <div
+                  v-for="wrap in group.list"
+                  :key="'q-' + wrap.globalIndex"
+                  :class="'index' + wrap.globalIndex"
+                  class="question-block"
+                >
+                  <el-row :gutter="24">
+                    <el-col :span="20" style="text-align: left">
+                      <div class="qu_content">
+                        {{ wrap.globalIndex + 1 }}.
+                        <span class="qu-type-tag">【{{ group.name }}】</span>
+                        <template v-if="wrap.item.quType === 5">
+                          {{ renderStemWithBlanks(wrap.item.title) }}
+                        </template>
+                        <template v-else>
+                          {{ wrap.item.title }}
+                        </template>
+                      </div>
+                      <div v-if="wrap.item.image" class="qu-media">
+                        <el-image
+                          :src="wrap.item.image"
+                          :preview-src-list="[wrap.item.image]"
+                          style="height: 100px"
+                        />
+                      </div>
+                      <audio-player v-if="wrap.item.audio" :src="wrap.item.audio" />
+
+                      <el-radio-group
+                        v-if="isObjective(wrap.item.quType)"
+                        class="qu_choose_group"
+                      >
+                        <el-radio
+                          v-for="(opt, oi) in (wrap.item.option || [])"
+                          :key="'opt-' + wrap.globalIndex + '-' + oi"
+                          :label="opt.content"
+                          border
+                          class="qu_choose"
+                          :class="{
+                            isRight: wrap.item.myOption != null && isCheck(wrap.item.myOption, opt.sort) && opt.isRight,
+                            incorrect: wrap.item.myOption != null && isCheck(wrap.item.myOption, opt.sort) && !opt.isRight
+                          }"
+                        >
+                          <div class="qu_choose_tag">
+                            <div class="qu_choose_tag_type">
+                              {{ numberToLetter(String(oi)) }}、{{ opt.content }}
+                            </div>
+                            <div v-if="opt.image" class="qu_choose_tag_el_image">
+                              <el-image :src="opt.image" :preview-src-list="[opt.image]" style="max-width: 200px" />
+                            </div>
+                          </div>
+                        </el-radio>
+                      </el-radio-group>
+
+                      <div v-else-if="wrap.item.quType === 5" class="content fill-answers">
+                        <div
+                          v-for="(ans, aIdx) in splitFillAnswers(wrap.item.myOption || wrap.item.answer)"
+                          :key="'fill-ans-' + wrap.globalIndex + '-' + aIdx"
+                          style="margin-bottom: 4px"
+                        >
+                          空{{ aIdx + 1 }}：{{ ans || '（未作答）' }}
+                        </div>
+                      </div>
+
+                      <div v-else class="content">
+                        {{ wrap.item.myOption || wrap.item.answer || '（未作答）' }}
+                      </div>
+
+                      <div class="qu_analysis">
+                        <el-card>
+                          <template v-if="isObjective(wrap.item.quType)">
+                            <div class="result-line">
+                              <span>作答结果：</span>
+                              <el-tag
+                                size="mini"
+                                :type="wrap.item.isRight === 1 ? 'success' : (wrap.item.isRight === 0 ? 'danger' : 'info')"
+                              >
+                                {{ wrap.item.isRight === 1 ? '正确' : (wrap.item.isRight === 0 ? '错误' : '未作答') }}
+                              </el-tag>
+                              <span v-if="wrap.item.score != null" class="score-chip">本题 {{ wrap.item.score }} 分</span>
+                            </div>
+                            <div class="result-line">
+                              <span>考生答案：</span>
+                              <span>{{ numberToLetter(wrap.item.myOption) || '未作答' }}</span>
+                            </div>
+                            <div class="result-line">
+                              <span>正确答案：</span>
+                              <span>{{ numberToLetter(wrap.item.rightOption) }}</span>
+                            </div>
+                            <div v-if="wrap.item.analyse" class="result-line">
+                              <span>试题解析：</span>
+                              <span>{{ wrap.item.analyse }}</span>
+                            </div>
+                          </template>
+
+                          <template v-else>
+                            <div style="display: flex; align-items: center; flex-wrap: wrap">
+                              <span style="color: #e6a23c">分数：</span>
+                              <el-input
+                                v-model="wrap.item.correctScore"
+                                type="number"
+                                :disabled="!canEditScore(wrap.item)"
+                                style="width: 100px; margin-left: 20px"
+                              />
+                              <span
+                                v-if="wrap.item.quType === 5 && !isFillRemarkable(wrap.item)"
+                                class="score-hint"
+                              >该卷填空题仅自动评分，不可改分</span>
+                              <span
+                                v-else-if="canEditScore(wrap.item) && (wrap.item.correctScore < 0 || wrap.item.correctScore > wrap.item.totalScore)"
+                                style="color: #f00; margin-left: 10px"
+                              >评分只能在 0-{{ wrap.item.totalScore }}之间</span>
+                            </div>
+
+                            <div style="margin-top: 14px">
+                              <span>参考答案:</span>
+                              <br>
+                              <template v-if="wrap.item.quType === 5">
+                                <div
+                                  v-for="(ans, aIdx) in splitFillAnswers(wrap.item.rightOption || wrap.item.refAnswer)"
+                                  :key="'ref-' + wrap.globalIndex + '-' + aIdx"
+                                  style="margin-top: 4px"
+                                >
+                                  空{{ aIdx + 1 }}：{{ ans || '-' }}
+                                </div>
+                              </template>
+                              <span v-else>{{ wrap.item.rightOption || wrap.item.refAnswer }}</span>
+                            </div>
+
+                            <div v-if="wrap.item.analyse" style="margin-top: 10px">
+                              <span>试题解析：</span>
+                              <span>{{ wrap.item.analyse }}</span>
+                            </div>
+
+                            <el-collapse class="auto-score-collapse">
+                              <el-collapse-item title="机器自动评分" name="auto">
+                                <template v-if="wrap.item.quType !== 5">
+                                  <div class="auto-line">
+                                    <span class="auto-label">AI 得分：</span>
+                                    <span v-if="wrap.item.aiScore !== null && wrap.item.aiScore !== undefined">{{ wrap.item.aiScore }} 分</span>
+                                    <span v-else class="auto-muted">暂无（可能仍在评分中）</span>
+                                  </div>
+                                  <div class="auto-line">
+                                    <span class="auto-label">评分说明：</span>
+                                    <span v-if="wrap.item.aiReason">{{ wrap.item.aiReason }}</span>
+                                    <span v-else class="auto-muted">暂无</span>
+                                  </div>
+                                </template>
+                                <template v-else>
+                                  <div class="auto-line">
+                                    <span class="auto-label">自动得分：</span>
+                                    <span>{{ wrap.item.earnedScore != null ? wrap.item.earnedScore : 0 }} 分</span>
+                                    <span class="auto-muted">（满分 {{ wrap.item.totalScore || wrap.item.score || 0 }}）</span>
+                                  </div>
+                                  <div
+                                    v-for="blank in blankAutoResults(wrap.item)"
+                                    :key="'blank-' + wrap.globalIndex + '-' + blank.index"
+                                    class="blank-result"
+                                    :class="blank.ok ? 'is-ok' : 'is-bad'"
+                                  >
+                                    <span class="blank-flag">{{ blank.ok ? '正确' : '错误' }}</span>
+                                    空{{ blank.index }}：作答「{{ blank.user || '未作答' }}」
+                                    ／ 标准「{{ blank.ref || '-' }}」
+                                  </div>
+                                </template>
+                                <div
+                                  v-if="wrap.item.manualScore !== null && wrap.item.manualScore !== undefined"
+                                  class="auto-line manual-line"
+                                >
+                                  <span class="auto-label">人工得分：</span>
+                                  <span>{{ wrap.item.manualScore }} 分</span>
+                                </div>
+                              </el-collapse-item>
+                            </el-collapse>
+                          </template>
+                        </el-card>
+                      </div>
+                    </el-col>
+                    <el-col :span="4">
+                      <el-row class="qu_assign_score">
+                        本题
+                        <el-input-number
+                          :controls="false"
+                          :min="0"
+                          :precision="2"
+                          disabled
+                          :value="wrap.item.totalScore != null ? wrap.item.totalScore : wrap.item.score"
+                          class="qu_assign_score_content"
+                        />
+                        分
+                      </el-row>
+                    </el-col>
+                  </el-row>
+                  <el-divider />
+                </div>
+              </el-collapse-item>
+            </el-collapse>
+          </el-card>
+        </el-main>
+      </el-container>
+    </el-container>
+
+    <!-- 挂到 body，保证相对视口固定、不随中间内容滚动 -->
+    <div ref="leftFloat" class="left-float" :style="leftFloatStyle">
       <div class="fk">
         <div class="sj">
           <el-divider />
@@ -62,239 +297,7 @@
       </div>
     </div>
 
-    <el-container>
-      <el-main class="right">
-        <el-card class="qu_list">
-          <div class="toolbar">
-            <el-button size="mini" icon="el-icon-arrow-down" @click="expandAll">全部展开</el-button>
-            <el-button size="mini" icon="el-icon-arrow-up" @click="collapseAll">全部折叠</el-button>
-            <el-button
-              size="mini"
-              :icon="floatCollapsed ? 'el-icon-s-data' : 'el-icon-close'"
-              @click="floatCollapsed = !floatCollapsed"
-            >{{ floatCollapsed ? '显示详情' : '隐藏详情' }}</el-button>
-          </div>
-
-          <div v-if="!pageLoading && !allQuestions.length" class="empty-tip">暂无题目详情</div>
-          <el-collapse v-model="activeTypes" class="type-collapse">
-            <el-collapse-item
-              v-for="group in typeGroups"
-              :key="'type-' + group.type"
-              :name="String(group.type)"
-            >
-              <template slot="title">
-                <div class="type-head">
-                  <div class="type-head-main">
-                    <i :class="group.icon" class="type-icon" />
-                    <span class="type-title">{{ group.name }}</span>
-                    <span class="type-count">{{ group.list.length }} 题 · {{ group.earned }}/{{ group.total }} 分</span>
-                  </div>
-                  <p class="type-desc">{{ group.desc }}</p>
-                </div>
-              </template>
-
-              <div
-                v-for="wrap in group.list"
-                :key="'q-' + wrap.globalIndex"
-                :class="'index' + wrap.globalIndex"
-                class="question-block"
-              >
-                <el-row :gutter="24">
-                  <el-col :span="20" style="text-align: left">
-                    <div class="qu_content">
-                      {{ wrap.globalIndex + 1 }}.
-                      <span class="qu-type-tag">【{{ group.name }}】</span>
-                      <template v-if="wrap.item.quType === 5">
-                        {{ renderStemWithBlanks(wrap.item.title) }}
-                      </template>
-                      <template v-else>
-                        {{ wrap.item.title }}
-                      </template>
-                    </div>
-                    <div v-if="wrap.item.image" class="qu-media">
-                      <el-image
-                        :src="wrap.item.image"
-                        :preview-src-list="[wrap.item.image]"
-                        style="height: 100px"
-                      />
-                    </div>
-                    <audio-player v-if="wrap.item.audio" :src="wrap.item.audio" />
-
-                    <el-radio-group
-                      v-if="isObjective(wrap.item.quType)"
-                      class="qu_choose_group"
-                    >
-                      <el-radio
-                        v-for="(opt, oi) in (wrap.item.option || [])"
-                        :key="'opt-' + wrap.globalIndex + '-' + oi"
-                        :label="opt.content"
-                        border
-                        class="qu_choose"
-                        :class="{
-                          isRight: wrap.item.myOption != null && isCheck(wrap.item.myOption, opt.sort) && opt.isRight,
-                          incorrect: wrap.item.myOption != null && isCheck(wrap.item.myOption, opt.sort) && !opt.isRight
-                        }"
-                      >
-                        <div class="qu_choose_tag">
-                          <div class="qu_choose_tag_type">
-                            {{ numberToLetter(String(oi)) }}、{{ opt.content }}
-                          </div>
-                          <div v-if="opt.image" class="qu_choose_tag_el_image">
-                            <el-image :src="opt.image" :preview-src-list="[opt.image]" style="max-width: 200px" />
-                          </div>
-                        </div>
-                      </el-radio>
-                    </el-radio-group>
-
-                    <div v-else-if="wrap.item.quType === 5" class="content fill-answers">
-                      <div
-                        v-for="(ans, aIdx) in splitFillAnswers(wrap.item.myOption || wrap.item.answer)"
-                        :key="'fill-ans-' + wrap.globalIndex + '-' + aIdx"
-                        style="margin-bottom: 4px"
-                      >
-                        空{{ aIdx + 1 }}：{{ ans || '（未作答）' }}
-                      </div>
-                    </div>
-
-                    <div v-else class="content">
-                      {{ wrap.item.myOption || wrap.item.answer || '（未作答）' }}
-                    </div>
-
-                    <div class="qu_analysis">
-                      <el-card>
-                        <template v-if="isObjective(wrap.item.quType)">
-                          <div class="result-line">
-                            <span>作答结果：</span>
-                            <el-tag
-                              size="mini"
-                              :type="wrap.item.isRight === 1 ? 'success' : (wrap.item.isRight === 0 ? 'danger' : 'info')"
-                            >
-                              {{ wrap.item.isRight === 1 ? '正确' : (wrap.item.isRight === 0 ? '错误' : '未作答') }}
-                            </el-tag>
-                            <span v-if="wrap.item.score != null" class="score-chip">本题 {{ wrap.item.score }} 分</span>
-                          </div>
-                          <div class="result-line">
-                            <span>考生答案：</span>
-                            <span>{{ numberToLetter(wrap.item.myOption) || '未作答' }}</span>
-                          </div>
-                          <div class="result-line">
-                            <span>正确答案：</span>
-                            <span>{{ numberToLetter(wrap.item.rightOption) }}</span>
-                          </div>
-                          <div v-if="wrap.item.analyse" class="result-line">
-                            <span>试题解析：</span>
-                            <span>{{ wrap.item.analyse }}</span>
-                          </div>
-                        </template>
-
-                        <template v-else>
-                          <div style="display: flex; align-items: center; flex-wrap: wrap">
-                            <span style="color: #e6a23c">分数：</span>
-                            <el-input
-                              v-model="wrap.item.correctScore"
-                              type="number"
-                              :disabled="!canEditScore(wrap.item)"
-                              style="width: 100px; margin-left: 20px"
-                            />
-                            <span
-                              v-if="wrap.item.quType === 5 && !isFillRemarkable(wrap.item)"
-                              class="score-hint"
-                            >该卷填空题仅自动评分，不可改分</span>
-                            <span
-                              v-else-if="canEditScore(wrap.item) && (wrap.item.correctScore < 0 || wrap.item.correctScore > wrap.item.totalScore)"
-                              style="color: #f00; margin-left: 10px"
-                            >评分只能在 0-{{ wrap.item.totalScore }}之间</span>
-                          </div>
-
-                          <div style="margin-top: 14px">
-                            <span>参考答案:</span>
-                            <br>
-                            <template v-if="wrap.item.quType === 5">
-                              <div
-                                v-for="(ans, aIdx) in splitFillAnswers(wrap.item.rightOption || wrap.item.refAnswer)"
-                                :key="'ref-' + wrap.globalIndex + '-' + aIdx"
-                                style="margin-top: 4px"
-                              >
-                                空{{ aIdx + 1 }}：{{ ans || '-' }}
-                              </div>
-                            </template>
-                            <span v-else>{{ wrap.item.rightOption || wrap.item.refAnswer }}</span>
-                          </div>
-
-                          <div v-if="wrap.item.analyse" style="margin-top: 10px">
-                            <span>试题解析：</span>
-                            <span>{{ wrap.item.analyse }}</span>
-                          </div>
-
-                          <el-collapse class="auto-score-collapse">
-                            <el-collapse-item title="机器自动评分" name="auto">
-                              <template v-if="wrap.item.quType !== 5">
-                                <div class="auto-line">
-                                  <span class="auto-label">AI 得分：</span>
-                                  <span v-if="wrap.item.aiScore !== null && wrap.item.aiScore !== undefined">{{ wrap.item.aiScore }} 分</span>
-                                  <span v-else class="auto-muted">暂无（可能仍在评分中）</span>
-                                </div>
-                                <div class="auto-line">
-                                  <span class="auto-label">评分说明：</span>
-                                  <span v-if="wrap.item.aiReason">{{ wrap.item.aiReason }}</span>
-                                  <span v-else class="auto-muted">暂无</span>
-                                </div>
-                              </template>
-                              <template v-else>
-                                <div class="auto-line">
-                                  <span class="auto-label">自动得分：</span>
-                                  <span>{{ wrap.item.earnedScore != null ? wrap.item.earnedScore : 0 }} 分</span>
-                                  <span class="auto-muted">（满分 {{ wrap.item.totalScore || wrap.item.score || 0 }}）</span>
-                                </div>
-                                <div
-                                  v-for="blank in blankAutoResults(wrap.item)"
-                                  :key="'blank-' + wrap.globalIndex + '-' + blank.index"
-                                  class="blank-result"
-                                  :class="blank.ok ? 'is-ok' : 'is-bad'"
-                                >
-                                  <span class="blank-flag">{{ blank.ok ? '正确' : '错误' }}</span>
-                                  空{{ blank.index }}：作答「{{ blank.user || '未作答' }}」
-                                  ／ 标准「{{ blank.ref || '-' }}」
-                                </div>
-                              </template>
-                              <div
-                                v-if="wrap.item.manualScore !== null && wrap.item.manualScore !== undefined"
-                                class="auto-line manual-line"
-                              >
-                                <span class="auto-label">人工得分：</span>
-                                <span>{{ wrap.item.manualScore }} 分</span>
-                              </div>
-                            </el-collapse-item>
-                          </el-collapse>
-                        </template>
-                      </el-card>
-                    </div>
-                  </el-col>
-                  <el-col :span="4">
-                    <el-row class="qu_assign_score">
-                      本题
-                      <el-input-number
-                        :controls="false"
-                        :min="0"
-                        :precision="2"
-                        disabled
-                        :value="wrap.item.totalScore != null ? wrap.item.totalScore : wrap.item.score"
-                        class="qu_assign_score_content"
-                      />
-                      分
-                    </el-row>
-                  </el-col>
-                </el-row>
-                <el-divider />
-              </div>
-            </el-collapse-item>
-          </el-collapse>
-        </el-card>
-      </el-main>
-    </el-container>
-
-    <!-- 浮动详情窗 -->
-    <div class="detail-float" :class="{ collapsed: floatCollapsed }">
+    <div ref="detailFloat" class="detail-float" :class="{ collapsed: floatCollapsed }">
       <div class="detail-float-head">
         <span><i class="el-icon-document" /> 考试详情</span>
         <el-button
@@ -354,7 +357,7 @@
         <div v-if="!levelStats.length" class="detail-muted">暂无难度数据</div>
       </template>
     </div>
-  </el-container>
+  </div>
 </template>
 
 <script>
@@ -393,7 +396,7 @@ var TYPE_META = [
     type: 4,
     name: '简答题',
     icon: 'el-icon-edit',
-    desc: '需教师人工评分；可展开查看机器自动评分作为参考。'
+    desc: '主观题，需人工阅卷给分。'
   }
 ]
 
@@ -417,6 +420,15 @@ export default {
       if (Number(info.whetherMark) === 1) return true
       const text = String(info.corrected || '')
       return text === '已阅卷' || text === '是'
+    },
+    leftFloatStyle() {
+      const mobile = this.$store.state.app.device === 'mobile'
+      const opened = this.$store.state.app.sidebar.opened
+      const side = mobile ? 0 : (opened ? 220 : 54)
+      return {
+        left: (side + 15) + 'px',
+        top: '120px'
+      }
     },
     typeGroups() {
       const self = this
@@ -477,38 +489,32 @@ export default {
     })
     this.loadPaper()
   },
+  mounted() {
+    this.mountFixedPanels()
+  },
+  beforeDestroy() {
+    this.unmountFixedPanels()
+  },
   methods: {
+    mountFixedPanels() {
+      ;['leftFloat', 'detailFloat'].forEach(ref => {
+        const el = this.$refs[ref]
+        if (el && el.parentNode !== document.body) {
+          document.body.appendChild(el)
+        }
+      })
+    },
+    unmountFixedPanels() {
+      ;['leftFloat', 'detailFloat'].forEach(ref => {
+        const el = this.$refs[ref]
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el)
+        }
+      })
+    },
     renderStemWithBlanks,
     splitFillAnswers(val) {
       return splitAnswers(val)
-    },
-    questionEarned(item) {
-      if (this.isObjective(item.quType)) {
-        return item.isRight === 1 ? (Number(item.score) || 0) : 0
-      }
-      if (item.correctScore !== '' && item.correctScore !== null && item.correctScore !== undefined) {
-        return Number(item.correctScore) || 0
-      }
-      if (Number(item.quType) === 5) {
-        return Number(item.earnedScore) || 0
-      }
-      return Number(item.aiScore) || 0
-    },
-    formatDuration(seconds) {
-      const s = Number(seconds)
-      if (s == null || isNaN(s) || s < 0) return '-'
-      const h = Math.floor(s / 3600)
-      const m = Math.floor((s % 3600) / 60)
-      const sec = s % 60
-      if (h > 0) return h + '小时' + m + '分' + sec + '秒'
-      if (m > 0) return m + '分' + sec + '秒'
-      return sec + '秒'
-    },
-    expandAll() {
-      this.activeTypes = this.typeGroups.map(g => String(g.type))
-    },
-    collapseAll() {
-      this.activeTypes = []
     },
     isObjective(quType) {
       const t = Number(quType)
@@ -526,6 +532,18 @@ export default {
     needManualScore(item) {
       if (Number(item.quType) === 5) return this.isFillRemarkable(item)
       return Number(item.quType) === 4
+    },
+    questionEarned(item) {
+      if (item == null) return 0
+      if (item.correctScore != null && item.correctScore !== '') {
+        const n = Number(item.correctScore)
+        if (!isNaN(n)) return n
+      }
+      if (item.earnedScore != null) return Number(item.earnedScore) || 0
+      if (item.manualScore != null) return Number(item.manualScore) || 0
+      if (item.aiScore != null) return Number(item.aiScore) || 0
+      if (item.score != null && this.isObjective(item.quType)) return Number(item.score) || 0
+      return 0
     },
     isCheck(myOption, sort) {
       if (myOption == null || myOption === '') return false
@@ -559,6 +577,21 @@ export default {
         })
       }
       return list
+    },
+    formatDuration(seconds) {
+      if (seconds == null || seconds === '') return '-'
+      const n = Number(seconds)
+      if (isNaN(n) || n < 0) return '-'
+      const m = Math.floor(n / 60)
+      const s = Math.floor(n % 60)
+      if (m <= 0) return s + ' 秒'
+      return m + ' 分 ' + s + ' 秒'
+    },
+    expandAll() {
+      this.activeTypes = this.typeGroups.map(g => String(g.type))
+    },
+    collapseAll() {
+      this.activeTypes = []
     },
     goBack() {
       this.$router.push({ name: 'answer-show' })
@@ -672,6 +705,21 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.make-test-root {
+  width: 100%;
+}
+.make-test-page {
+  min-height: calc(100vh - 100px);
+  border: 1px solid #eee;
+  box-sizing: border-box;
+  background: #fff;
+  align-items: flex-start;
+}
+.make-test-main {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
 .hl {
   color: #0f766e;
 }
@@ -754,35 +802,42 @@ export default {
 }
 .ann {
   width: 130px;
-  margin-top: 25px;
-  margin-left: 0;
+  margin: 16px 0 12px;
 }
 .sj {
-  margin-top: 10px;
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 10px;
   line-height: 22px;
 }
 .fk {
   width: 200px;
-  height: 100%;
-  box-shadow: 0 0 15px rgb(197, 197, 197);
-  margin: 20px 0 0 15px;
-  overflow: auto;
+  box-shadow: none;
+  margin: 0;
+  background: transparent;
 }
-.left {
-  width: 17%;
-  min-width: 200px;
-  height: 100%;
+.left-spacer {
+  width: 215px;
+  flex-shrink: 0;
+}
+.left-float {
+  position: fixed;
+  z-index: 2000;
+  width: 200px;
+  max-height: calc(100vh - 160px);
+  overflow: auto;
+  box-sizing: border-box;
+  background: #fff;
+  box-shadow: 0 0 15px rgb(197, 197, 197);
 }
 .right {
-  width: 70%;
-  height: 100%;
+  padding: 12px !important;
+  box-sizing: border-box;
+  overflow: visible;
+}
+.right.with-float {
+  padding-right: 328px !important;
 }
 .nav-by-type {
   margin-top: 8px;
-  max-height: 460px;
-  overflow: auto;
   padding-right: 2px;
 }
 .nav-type-block {
@@ -895,7 +950,7 @@ export default {
   right: 24px;
   top: 120px;
   width: 300px;
-  z-index: 20;
+  z-index: 2000;
   background: #fff;
   border: 1px solid #d9e8e4;
   box-shadow: 0 8px 24px rgba(15, 118, 110, 0.12);
@@ -903,6 +958,7 @@ export default {
   padding: 12px 14px 14px;
   max-height: calc(100vh - 160px);
   overflow: auto;
+  box-sizing: border-box;
 }
 .detail-float.collapsed {
   width: 44px;
@@ -956,9 +1012,8 @@ export default {
 }
 
 .qu_list {
-  height: 100%;
   width: 100%;
-  overflow: auto;
+  box-sizing: border-box;
 
   .qu_content {
     padding-left: 10px;

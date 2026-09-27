@@ -5,7 +5,6 @@
     element-loading-spinner="el-icon-loading"
     element-loading-background="rgba(232, 242, 239, 0.72)"
     class="record-detail-page page-loading-host"
-    style="height: 100vh; border: 1px solid #eee"
   >
     <!-- <div class="left">
       <div class="fk">
@@ -380,7 +379,11 @@ export default {
 <style scoped lang="scss">
 .record-detail-page {
   position: relative;
-  min-height: 360px;
+  min-height: calc(100vh - 100px);
+  border: 1px solid #eee;
+  box-sizing: border-box;
+  background: #fff;
+  align-items: flex-start;
 }
 
 .record-empty {
@@ -412,7 +415,6 @@ export default {
 }
 .fk {
   width: 200px;
-  height: 100%;
   box-shadow: 0 0 15px rgb(197, 197, 197);
   margin: auto;
   margin-top: 20px;
@@ -426,11 +428,12 @@ export default {
 
 .left {
   width: 250px;
-  height: 100%;
+  align-self: flex-start;
 }
 .right {
   width: 70%;
-  height: 100%;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 @media screen and (max-width: 991px) {
@@ -451,9 +454,7 @@ export default {
 
 // 试题内容样式
 .qu_list {
-  height: 100%;
   width: 100%;
-  overflow: auto;
   page-break-after: always;
 
   .qu_num {

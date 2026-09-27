@@ -987,8 +987,8 @@ page {
 }
 
 .content-h {
-  height: calc(100vh - 110px);
-  overflow-y: auto;
+  height: auto;
+  overflow: visible;
 }
 
 .card-title {
