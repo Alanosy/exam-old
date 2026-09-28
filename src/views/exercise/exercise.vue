@@ -1,10 +1,10 @@
 <template>
-  <div style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
+  <div class="exam-page" style="width: 100%; height: 100%; background-color: #f0f2f5; padding: 20px 0 0">
     <!-- 开头 -->
     <el-row :gutter="24">
       <el-col :span="24">
-        <el-card style="margin-bottom: 10px">
-          题库：{{ repoTitle }}
+        <el-card class="exam-top-bar" style="margin-bottom: 10px">
+          <span>题库：{{ repoTitle }}</span>
           <el-button
             :loading="loading"
             style="float: right; margin-top: -10px"
@@ -17,7 +17,7 @@
       </el-col>
 
       <!-- 答题卡 -->
-      <el-col :span="5" :xs="24" style="margin-bottom: 10px">
+      <el-col :span="5" :xs="24" class="exam-sheet-col" :class="{ 'is-open': sheetOpen }" style="margin-bottom: 10px">
         <el-card class="content-h">
           <div class="btn_switch">
             <button
@@ -116,9 +116,9 @@
         </el-card>
       </el-col>
 
-      <el-col :span="19" :xs="24">
+      <el-col :span="19" :xs="24" class="exam-question-col">
         <el-card class="qu-content content-h">
-          <p v-if="quDetail.content">
+          <p v-if="quDetail.content" class="question-content">
             <span :class="['question-type', {
               'single-choice': quDetail.quType === 1,
               'multiple-choice': quDetail.quType === 2,
@@ -130,9 +130,10 @@
           <p v-if="quDetail.image != null && quDetail.image != ''">
             <el-image 
             :src="quDetail.image" 
-            style="max-width: 100px;max-height:100%" 
+            class="question-image"
             :preview-src="[quDetail.image]" />
           </p>
+          <audio-player :src="quDetail.audio" />
           <div v-if="quDetail.quType == 1 || quDetail.quType == 3">
             <el-radio-group v-model="radioValue" :disabled="isAnswered">
               <el-radio
@@ -142,11 +143,11 @@
                 @click="handleRadioClick(item.id)"
               >
                 <!-- 给选项文本添加 getOptionClass 动态 class -->
-                <span :class="getOptionClass(item)">
+                <span :class="getOptionClass(item)" class="option-content">
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
                 <div v-if="item.image && item.image  != ''" style="clear: both">
-                  <el-image :src="item.image" style="max-width: 100px" />
+                  <el-image :src="item.image" class="option-image" />
                 </div>
               </el-radio>
             </el-radio-group>
@@ -164,7 +165,7 @@
                   {{ numberToLetter(item.sort + 1) }}.{{ item.content }}
                 </span>
                 <div v-if="item.image && item.image  != ''" style="clear: both">
-                  <el-image :src="item.image" style="max-width: 100px" />
+                  <el-image :src="item.image" class="option-image" />
                 </div>
               </el-checkbox>
             </el-checkbox-group>
@@ -186,8 +187,8 @@
                 {{ rightQuAnswer.msg }}
               </span>
             </p>
-            <p v-if="rightQuAnswer.data">正确答案：{{ getRightAnswer() }}</p>
-            <p>试题分析：{{ rightQuAnswer.data.analysis }}</p>
+            <p v-if="rightQuAnswer.data" class="option-content">正确答案：{{ getRightAnswer() }}</p>
+            <p class="option-content">试题分析：{{ rightQuAnswer.data.analysis }}</p>
           </div>
 
           <div style="margin-top: 20px">
@@ -254,16 +255,21 @@
         <el-button type="primary" @click="finishExam">结束刷题</el-button>
       </span>
     </el-dialog>
-
+    <div v-if="isMobile && sheetOpen" class="exam-sheet-mask" @click="sheetOpen = false" />
+    <button v-if="isMobile" type="button" class="exam-sheet-toggle" @click="sheetOpen = !sheetOpen">
+      {{ sheetOpen ? '收起答题卡' : '答题卡' }}
+    </button>
   </div>
 </template>
 
 <script>
 import { getQuestion, getQuestionDetail, submitAnswer, getAnswerInfo } from '@/api/exercise'
 import { Loading } from 'element-ui'
+import AudioPlayer from '@/components/AudioPlayer'
 
 export default {
   name: 'ExamProcess',
+  components: { AudioPlayer },
 
   data() {
     return {
@@ -307,7 +313,8 @@ export default {
       debounceFlag: false,
       isAnswered: false,
       // 新增属性，控制统计弹框的显示
-      statisticsDialogVisible: false
+      statisticsDialogVisible: false,
+      sheetOpen: false
     }
   },
   computed: {
@@ -468,76 +475,80 @@ export default {
 
     // 点击弹框中“确定结束”按钮后的处理：关闭弹框并进行跳转或其他后续处理
     finishExam() {
-      // 删除当前标签页
-      this.$store.commit('menu/REMOVE_TAG', {
-        title: this.$route.meta.title, // 从路由元数据中获取标题
-        path: this.$route.path,
-        name: this.$route.name // 添加路由名称
-      })
-      this.statisticsDialogVisible = false
-      this.$router.push({ name: 'exercise-center', params: { id: this.paperId }})
+      this.goBackToExerciseCenter()
     },
     // 取消弹框，不结束刷题
     onDialogCancel() {
       this.statisticsDialogVisible = false
     },
+    goBackToExerciseCenter() {
+      this.$store.commit('menu/REMOVE_TAG', {
+        title: this.$route.meta.title,
+        path: this.$route.path,
+        name: this.$route.name
+      })
+      this.statisticsDialogVisible = false
+      this.$router.push({ name: 'exercise-center' })
+    },
     async test() {
-    
-      const res = await getQuestion(null, this.repoId)
-      this.quList = res.data
+      try {
+        const res = await getQuestion(null, this.repoId)
+        this.quList = res.data
 
-      // 清空各题型数组
-      this.paperData.radioList = []
-      this.paperData.multiList = []
-      this.paperData.judgeList = []
-      this.paperData.saqList = []
+        // 清空各题型数组
+        this.paperData.radioList = []
+        this.paperData.multiList = []
+        this.paperData.judgeList = []
+        this.paperData.saqList = []
 
-      if (this.number === 1) {
-        this.quList.forEach((item) => {
-          if (item.quType === 1) {
-            this.paperData.radioList.push(item)
-          } else if (item.quType === 2) {
-            this.paperData.multiList.push(item)
-          } else if (item.quType === 3) {
-            this.paperData.judgeList.push(item)
-          } else if (item.quType === 4) {
-            this.paperData.saqList.push(item)
-          }
-        })
-        this.quList = []
-        // 初始化试题Id
-        this.initQuId()
+        if (this.number === 1) {
+          this.quList.forEach((item) => {
+            if (item.quType === 1) {
+              this.paperData.radioList.push(item)
+            } else if (item.quType === 2) {
+              this.paperData.multiList.push(item)
+            } else if (item.quType === 3) {
+              this.paperData.judgeList.push(item)
+            } else if (item.quType === 4) {
+              this.paperData.saqList.push(item)
+            }
+          })
+          this.quList = []
+          // 初始化试题Id
+          this.initQuId()
+        }
+        this.getCurrentQuDetial()
+      } catch (error) {
+        this.goBackToExerciseCenter()
       }
-      this.getCurrentQuDetial()
     },
     // 获取试题Id列表
     async getQuestionList() {
-      const res = await getQuestion(null, this.repoId)
-      this.quList = res.data
+      try {
+        const res = await getQuestion(null, this.repoId)
+        this.quList = res.data
 
-      // 按顺序
-      // if (this.number == 0) {
-      this.paperData.radioList = []
-      this.paperData.multiList = []
-      this.paperData.judgeList = []
-      this.paperData.saqList = []
-      // }
-      // 按题型
-      if (this.number === 1) {
-        this.quList.forEach((item) => {
-          if (item.quType === 1) {
-            this.paperData.radioList.push(item)
-          } else if (item.quType === 2) {
-            this.paperData.multiList.push(item)
-          } else if (item.quType === 3) {
-            this.paperData.judgeList.push(item)
-          } else if (item.quType === 4) {
-            this.paperData.saqList.push(item)
-          }
-        })
-        this.quList = []
-        // 初始化试题Id
-        this.initQuId()
+        this.paperData.radioList = []
+        this.paperData.multiList = []
+        this.paperData.judgeList = []
+        this.paperData.saqList = []
+        if (this.number === 1) {
+          this.quList.forEach((item) => {
+            if (item.quType === 1) {
+              this.paperData.radioList.push(item)
+            } else if (item.quType === 2) {
+              this.paperData.multiList.push(item)
+            } else if (item.quType === 3) {
+              this.paperData.judgeList.push(item)
+            } else if (item.quType === 4) {
+              this.paperData.saqList.push(item)
+            }
+          })
+          this.quList = []
+          this.initQuId()
+        }
+      } catch (error) {
+        this.goBackToExerciseCenter()
       }
     },
     numberToLetter(sort) {
@@ -590,6 +601,7 @@ export default {
     },
     // 按题型选择题号
     selectQuId(item, index) {
+      this.sheetOpen = false
       this.resetAnswerState()
       this.curTypeIndex = index
       this.curQuId = item.quId
@@ -660,6 +672,7 @@ export default {
     },
     // 选择题号
     selectQuNum(item, index) {
+      this.sheetOpen = false
       // alert(this.nextText)
       // alert(this.rightQuAnswer);
       const loading = Loading.service({
@@ -852,6 +865,20 @@ page {
   background: #ebecee;
 }
 
+/* 题目内容样式 - 支持换行显示 */
+.question-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+/* 选项内容样式 - 支持换行显示 */
+.option-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
 .btn_anniu {
   width: 50%;
   padding: 10px 0;
@@ -878,6 +905,11 @@ page {
 .el-checkbox-group label,
 .el-radio-group label {
   width: 100%;
+}
+
+.question-image,
+.option-image {
+  max-width: 100%;
 }
 
 .content-h {

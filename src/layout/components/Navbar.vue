@@ -1,18 +1,18 @@
 <template>
   <div class="navbar">
-    <div style="width:100%;height:66px;box-shadow: rgb(0 21 41 / 9%) 0px 1px 4px;}">
+    <div class="navbar-inner">
       <hamburger
         :is-active="sidebar.opened"
         class="hamburger-container"
         @toggleClick="toggleSideBar"
       />
 
-      <breadcrumb class="breadcrumb-container" />
+      <breadcrumb v-if="!isMobile" class="breadcrumb-container" />
 
       <div class="right-menu">
         <el-dropdown class="avatar-container" trigger="click">
           <div class="avatar-wrapper">
-            <img :src="user.avatar" class="user-avatar">
+            <img :src="displayAvatar" class="user-avatar" referrerpolicy="no-referrer">
             <i class="el-icon-caret-bottom" />
           </div>
           <el-dropdown-menu slot="dropdown" class="user-dropdown">
@@ -32,14 +32,8 @@
     </div>
     <!-- tags -->
     <div
-      style="
-        width: 100%;
-        height: 45px;
-        background-color: write;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-      "
+      v-if="!isMobile"
+      class="tags-bar"
     >
       <template v-for="(item,index) in tags">
         <el-tag
@@ -77,10 +71,14 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['sidebar', 'avatar', 'tags'])
+    ...mapGetters(['sidebar', 'avatar', 'tags']),
+    displayAvatar() {
+      return this.avatar || (this.user && this.user.avatar) || ''
+    }
   },
   created() {
     this.decode()
+    this.loadLatestAvatar()
   },
   methods: {
     handleTagClose(item) {
@@ -100,6 +98,13 @@ export default {
       const token = getToken()
       const user = parseJwt(token)
       this.user = JSON.parse(user.userInfo)
+    },
+    async loadLatestAvatar() {
+      try {
+        await this.$store.dispatch('user/getInfo')
+      } catch (e) {
+        // 接口失败时仍使用 token 中的头像
+      }
     },
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
@@ -135,6 +140,21 @@ export default {
 .active {
   background-color: #58b289;
   color: rgb(255, 255, 255);
+}
+
+.tags-bar {
+  width: 100%;
+  height: 45px;
+  background-color: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-inner {
+  width: 100%;
+  height: 66px;
+  box-shadow: rgb(0 21 41 / 9%) 0px 1px 4px;
 }
 
 .navbar {
@@ -189,7 +209,7 @@ export default {
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 16px;
 
       .avatar-wrapper {
         margin-top: 5px;

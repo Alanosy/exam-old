@@ -10,9 +10,8 @@
       </el-form-item>
     </el-form>
 
-    <!-- table -->
-
     <el-table
+      v-if="!isMobile"
       :data="data.records"
       border
       fit
@@ -45,12 +44,25 @@
       </el-table-column>
     </el-table>
 
+    <div v-else class="h5-card-list">
+      <div v-if="!(data.records && data.records.length)" class="h5-card-empty">暂无证书</div>
+      <div v-for="(row, index) in (data.records || [])" :key="row.id || index" class="h5-card">
+        <div class="h5-card-title">{{ row.certificateName }}</div>
+        <div class="h5-card-row"><span>颁发单位</span><span>{{ row.certificationNuit }}</span></div>
+        <div class="h5-card-row"><span>考试名称</span><span>{{ row.examName }}</span></div>
+        <div class="h5-card-row"><span>获奖时间</span><span>{{ row.createTime }}</span></div>
+        <div class="h5-card-actions">
+          <el-button type="primary" size="small" @click="preview(row)">预览证书</el-button>
+        </div>
+      </div>
+    </div>
+
     <div class="pagination-container">
       <el-pagination
         :current-page="data.current"
         :page-sizes="[10, 20, 30, 40]"
         :page-size="data.size"
-        layout="total, sizes, prev, pager, next, jumper"
+        :layout="paginationLayout"
         :total="data.total"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -60,7 +72,7 @@
     <el-dialog
       title="证书预览和下载"
       :visible.sync="dialogVisible"
-      width="60%"
+      :width="isMobile ? '95%' : '60%'"
       :before-close="handleClose"
     >
       <div id="pdfDom">
@@ -199,6 +211,7 @@ export default {
   /* 要想pdf周边留白，要在这里设置 */
   padding: 20px;
   width: 750px;
+  overflow-x: auto;
 }
 .proBox {
   /* 奖状的模板 */

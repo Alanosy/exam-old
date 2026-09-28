@@ -1,5 +1,6 @@
 <template>
   <div
+    class="exam-page"
     style="
       width: 100%;
       height: 100%;
@@ -34,6 +35,7 @@
           <p v-if="quData.image != null && quData.image != ''">
             <el-image :src="quData.image" style="max-width: 200px" />
           </p>
+          <audio-player :src="quData.audio" />
           <div v-if="quData.quType === 1 || quData.quType === 3">
             <!-- 选项 -->
             <el-radio-group v-model="radioValue">
@@ -146,7 +148,9 @@
 </template>
 <script>
 import { fullBook, getSingleQu, getUserBookList } from "@/api/userbook";
+import AudioPlayer from "@/components/AudioPlayer";
 export default {
+  components: { AudioPlayer },
   data() {
     return {
       repoId: "",
@@ -401,6 +405,13 @@ page {
 .content-h {
   height: calc(100vh - 110px);
   overflow-y: auto;
+}
+
+@media screen and (max-width: 991px) {
+  .content-h {
+    height: auto;
+    min-height: calc(100vh - 120px);
+  }
 }
 
 .card-title {

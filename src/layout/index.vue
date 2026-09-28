@@ -10,6 +10,9 @@
       <div :class="{ 'fixed-header': fixedHeader }">
         <navbar />
       </div>
+      <div v-if="isMobile && !isStudentRole" class="pc-only-tip">
+        管理功能建议在电脑上使用，手机端仅作查看
+      </div>
       <app-main />
     </div>
   </div>
@@ -17,7 +20,6 @@
 
 <script>
 import { Navbar, Sidebar, AppMain } from './components'
-import ResizeMixin from './mixin/ResizeHandler'
 import routes from '@/router'
 export default {
   name: 'Layout',
@@ -26,7 +28,6 @@ export default {
     Sidebar,
     AppMain
   },
-  mixins: [ResizeMixin],
   data() {
     return {
 
@@ -48,6 +49,17 @@ export default {
         openSidebar: this.sidebar.opened,
         withoutAnimation: this.sidebar.withoutAnimation,
         mobile: this.device === 'mobile'
+      }
+    },
+    isStudentRole() {
+      const roles = (window.localStorage.getItem('roles') || '').toLowerCase()
+      return roles.includes('student')
+    }
+  },
+  watch: {
+    $route() {
+      if (this.device === 'mobile' && this.sidebar.opened) {
+        this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
       }
     }
   },

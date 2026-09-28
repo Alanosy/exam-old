@@ -39,3 +39,11 @@ export function noticeGetNew(params) {
     params
   })
 }
+
+/** 公告详情（含全文 content；列表接口不再返回全文） */
+export function noticeDetail(id) {
+  return request({
+    url: 'notices/detail/' + id,
+    method: 'get'
+  })
+}

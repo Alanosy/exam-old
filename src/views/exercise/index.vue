@@ -20,13 +20,13 @@
       </el-form-item>
     </el-form>
 
-    <!-- table -->
-
     <el-table
+      v-if="!isMobile"
       :data="data.records"
       border
       fit
       highlight-current-row
+      empty-text="暂无本班可刷题库，请联系老师在题库中勾选班级"
       :header-cell-style="{
         background: '#f2f3f4',
         color: '#555',
@@ -60,12 +60,32 @@
       </el-table-column>
     </el-table>
 
+    <div v-else class="h5-card-list">
+      <div v-if="!(data.records && data.records.length)" class="h5-card-empty">暂无本班可刷题库，请联系老师在题库中勾选班级</div>
+      <div v-for="(row, index) in (data.records || [])" :key="row.id || index" class="h5-card">
+        <div class="h5-card-title">{{ row.repoTitle }}</div>
+        <div class="h5-card-row">
+          <span>题库分类</span>
+          <span>{{ row.parentCategoryName ? row.parentCategoryName + ' / ' : '' }}{{ row.categoryName || '未分类' }}</span>
+        </div>
+        <div class="h5-card-row"><span>试题总数</span><span>{{ row.totalCount }}</span></div>
+        <div class="h5-card-actions">
+          <el-button
+            type="success"
+            :disabled="row.totalCount == 0"
+            size="small"
+            @click="screenInfo(row.id, row.repoTitle)"
+          >开始刷题</el-button>
+        </div>
+      </div>
+    </div>
+
     <div class="pagination-container">
       <el-pagination
         :current-page="data.current"
         :page-sizes="[10, 20, 30, 40]"
         :page-size="data.size"
-        layout="total, sizes, prev, pager, next, jumper"
+        :layout="paginationLayout"
         :total="data.total"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"

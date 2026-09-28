@@ -43,6 +43,18 @@
           <file-upload v-model="postForm.image" accept=".jpg,.jepg,.png" />
         </el-form-item>
 
+        <el-form-item label="试题音频" style="margin-left: 7px">
+          <file-upload
+            v-model="postForm.audio"
+            accept=".mp3,audio/mpeg"
+            list-type="text"
+            action="api/questions/uploadAudio"
+            :limit="5"
+            tips="仅支持 mp3，单个不超过 10MB，最多 5 个"
+          />
+          <audio-player :src="postForm.audio" />
+        </el-form-item>
+
         <el-form-item label="整题解析" prop="oriPrice" style="margin-left: 7px">
           <el-input
             v-model="postForm.analysis"
@@ -140,11 +152,12 @@
 import { fetchDetail, quAdd, quDetail, quUpdate } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 import FileUpload from '@/components/FileUpload'
+import AudioPlayer from '@/components/AudioPlayer'
 
 export default {
 
   name: 'QuDetail',
-  components: { FileUpload, RepoSelect },
+  components: { FileUpload, RepoSelect, AudioPlayer },
 
   data() {
     return {

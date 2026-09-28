@@ -10,7 +10,7 @@
       <el-card class="box-card">
         <span>最新公告</span>
         <div style="overflow: auto">
-          <el-collapse accordion>
+          <el-collapse accordion @change="onNoticeExpand">
             <!-- eslint-disable-next-line vue/no-template-shadow -->
             <div v-for="(item, index) in noticePage.records" :key="index">
               <el-collapse-item
@@ -18,7 +18,8 @@
                 :title="item.title"
                 :name="index"
               >
-                <div v-html="item.content" />
+                <div v-if="item._loading" class="notice-loading">加载中...</div>
+                <div v-else v-html="item.content" />
                 <div class="noticeContent">
                   <div>{{ item.realName }}</div>
                   <div>{{ item.createTime }}</div>
@@ -40,7 +41,7 @@
 </template>
 
 <script>
-import { noticeGetNew } from '@/api/notice'
+import { noticeGetNew, noticeDetail } from '@/api/notice'
 import { getDaily } from '@/api/stat'
 import echarts from 'echarts'
 
@@ -138,6 +139,29 @@ export default {
       }
       // this.transformData(res);
     },
+    // 展开时再拉取全文，减轻列表带宽
+    async onNoticeExpand(name) {
+      if (name === '' || name === 'default' || name == null) {
+        return
+      }
+      const item = this.noticePage.records[name]
+      if (!item || item.id == null) {
+        return
+      }
+      // 已加载过全文则跳过
+      if (item.content) {
+        return
+      }
+      this.$set(item, '_loading', true)
+      try {
+        const res = await noticeDetail(item.id)
+        if (res && res.data) {
+          this.$set(item, 'content', res.data.content || '')
+        }
+      } finally {
+        this.$set(item, '_loading', false)
+      }
+    },
     initCharts() {
       this.myChart = echarts.init(this.$refs.charts)
       this.myChart.setOption(this.option)
@@ -181,5 +205,25 @@ export default {
   flex-direction: column;
   align-items: flex-end;
   padding-left: 20px;
+}
+
+@media screen and (max-width: 991px) {
+  .app-container {
+    height: auto;
+    min-height: calc(100vh - 50px);
+    flex-direction: column;
+    transform: none;
+    align-items: stretch;
+    padding: 12px;
+  }
+  .right,
+  .left {
+    width: 100%;
+    height: auto;
+    margin-bottom: 12px;
+  }
+  .box-card .chart-div {
+    height: 240px;
+  }
 }
 </style>

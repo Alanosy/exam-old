@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import { noticePaging, noticeAdd, noticeDel, noticeUpdate } from '@/api/notice'
+import { noticePaging, noticeAdd, noticeDel, noticeUpdate, noticeDetail } from '@/api/notice'
 import noticeDialog from '@/components/notice/noticeDialog/index'
 export default {
   components: {
@@ -100,15 +100,30 @@ export default {
     this.getNoticePage()
   },
   methods: {
+    // 拉取详情（列表不含 content）
+    async loadNoticeDetail(row) {
+      const res = await noticeDetail(row.id)
+      if (res && res.data) {
+        const detail = res.data
+        return {
+          ...row,
+          ...detail,
+          // 开关组件需要 boolean
+          isPublic: detail.isPublic === 1 || detail.isPublic === true,
+          gradeIds: detail.gradeIds || []
+        }
+      }
+      return { ...row, content: '', gradeIds: row.gradeIds || [] }
+    },
     // 编辑公告按钮
-    updateRow(row) {
+    async updateRow(row) {
+      this.form = await this.loadNoticeDetail(row)
       this.editVisible = true
-      this.form = row
     },
     // 查看公告按钮
-    showRow(row) {
+    async showRow(row) {
+      this.form = await this.loadNoticeDetail(row)
       this.showVisible = true
-      this.form = row
     },
     // 分页查询
     async getNoticePage(pageNum, pageSize, title = null) {
