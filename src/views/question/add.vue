@@ -157,6 +157,12 @@
             </el-button>
 
             <el-table :data="postForm.options.filter(option => !option.isDeleted)" :border="true" style="width: 90%">
+              <el-table-column label="编号" width="80" align="center">
+                <template v-slot="scope">
+                  {{ optionLetter(scope.$index) }}
+                </template>
+              </el-table-column>
+
               <el-table-column label="是否答案" width="120" align="center">
                 <template v-slot="scope">
                   <el-checkbox v-model="scope.row.isRight">答案</el-checkbox>
@@ -278,6 +284,8 @@ import {
   parseBlankIndexes
 } from '@/utils/blankPlaceholder'
 
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
 export default {
 
   name: 'QuDetail',
@@ -360,6 +368,9 @@ export default {
     this.postForm = {}
   },
   methods: {
+    optionLetter(index) {
+      return LETTERS[index] || `(${index + 1})`
+    },
     applyPageTitle() {
       const title = this.pageTitle
       if (this.$route.meta) {
@@ -382,11 +393,9 @@ export default {
           if (!this.postForm.level) {
             this.$set(this.postForm, 'level', 3)
           }
-          if (this.postForm.quType === 5) {
-            this.postForm.options = (this.postForm.options || [])
-              .slice()
-              .sort((a, b) => (a.sort || 0) - (b.sort || 0))
-          }
+          this.postForm.options = (this.postForm.options || [])
+            .slice()
+            .sort((a, b) => (a.sort || 0) - (b.sort || 0))
         }
       })
     },
@@ -475,9 +484,11 @@ export default {
       })
       if (actualIndex !== -1) {
         this.postForm.options[actualIndex].isDeleted = 1
-        this.postForm.options.forEach((option, idx) => {
+        let visibleSort = 0
+        this.postForm.options.forEach(option => {
           if (!option.isDeleted) {
-            option.sort = idx
+            option.sort = visibleSort
+            visibleSort += 1
           }
         })
       }
@@ -531,12 +542,16 @@ export default {
         if (!valid) {
           return
         }
+        let visibleSort = 0
         for (let i = 0; i < this.postForm.options.length; i++) {
           const option = this.postForm.options[i]
           option.isRight = option.isRight ? 1 : 0
           if (this.postForm.quType === 5) {
             option.isRight = 1
             option.sort = i + 1
+          } else if (this.postForm.quType !== 4 && !option.isDeleted) {
+            option.sort = visibleSort
+            visibleSort += 1
           }
         }
 
