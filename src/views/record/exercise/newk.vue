@@ -11,184 +11,166 @@
             element-loading-background="rgba(232, 242, 239, 0.72)"
           >
             <div>
-              <template v-for="(index,indexx) in data">
-                <!-- eslint-disable-next-line vue/require-v-for-key -->
-                <div
-                  v-if="isFirstOfType(index, indexx)"
-                  :key="'type-' + index.quType"
-                  class="qu-type-header"
-                >
-                  {{ getQuestionTypeName(index.quType) }}（{{ getQuestionTypeCount(index.quType) }}题）
-                </div>
-                <div
-                  v-if="index.quType === 1 || index.quType === 2 || index.quType === 3"
-                  :class="'index' + index"
-                >
-                  <el-row :gutter="24">
-                    <el-col :span="20" style="text-align: left">
-                      <!-- 题目: 序号、类型、题干 -->
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{indexx+1}}、{{ index.title }}</div>
-                      </div>
-                      <div v-if="index.image != null && index.image != ''">
-                        <el-image :src="index.image" 
-                        :preview-src="[index.image]" 
-                        style="height: 100px;" />
-                      </div>
-                      <audio-player :src="index.audio" />
-                      <!-- 选项 -->
-                      <el-radio-group class="qu_choose_group">
-                        <!-- ['A', 'B', 'C', 'D'] -->
-                        <el-radio
-                          v-for="(item, indexs) in index.option"
-                          :key="indexs"
-                          :label="item.content"
-                          border
-
-                          class="qu_choose"
-                          :class="{'imgC':item.image != null && item.image != '','isRight':index.myOption!=null&& isCheck(index.myOption ,item.sort) && item.isRight , 'incorrect':index.myOption!=null && isCheck(index.myOption ,item.sort) && !item.isRight}"
-                        >
-
-                          <!-- 选项flex浮动 -->
-                          <div class="qu_choose_tag">
-                            <div class="qu_choose_tag_type">
-                              {{ numberToLetter(indexs) }}、{{ item.content }}
-                            </div>
-                            <div v-if="item.image != null && item.image != ''">
-                              <el-image :src="item.image"
-                              :preview-src="[item.image]" 
-                               class="qu_choose_tag_img" />
-                            </div>
-                          </div>
-                        </el-radio>
-                      </el-radio-group>
-
-                      <!-- 题目解析 -->
-                      <div class="qu_analysis">
-                        <el-card>
+              <template v-for="(quType) in [1, 2, 3, 4, 5]">
+                <template v-if="groupedQuestions[quType] && groupedQuestions[quType].length > 0">
+                  <div
+                    :key="'type-' + quType"
+                    class="qu-type-header"
+                    @click="toggleCollapse(quType)"
+                    style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;"
+                  >
+                    <span>{{ getQuestionTypeName(quType) }}（{{ groupedQuestions[quType].length }}题）</span>
+                    <i :class="collapsedTypes[quType] ? 'el-icon-arrow-down' : 'el-icon-arrow-up'" style="margin-right: 10px;"></i>
+                  </div>
+                  <template v-if="!collapsedTypes[quType]">
+                    <template v-for="(index, indexx) in groupedQuestions[quType]">
+                    <div
+                      v-if="quType === 1 || quType === 2 || quType === 3"
+                      :key="'q-' + quType + '-' + indexx"
+                      :class="'index' + index"
+                    >
+                      <el-row :gutter="24">
+                        <el-col :span="20" style="text-align: left">
+                          <!-- 题目: 序号、类型、题干 -->
                           <div>
-                            <span>考生答案：</span>
-                            <span>{{ numberToLetter(index.myOption) }}</span><br>
+                            <div class="qu_content">{{indexx+1}}、{{ index.title }}</div>
                           </div>
-                          <div style="margin-top: 8px">
-                            <span>正确答案：</span>
-                            <span>{{ numberToLetter(index.rightOption) }}</span><br>
+                          <div v-if="index.image != null && index.image != ''">
+                            <el-image :src="index.image" 
+                            :preview-src="[index.image]" 
+                            style="height: 100px;" />
                           </div>
-                          <div style="margin-top: 8px">
-                            <span>试题解析：</span>
-                            <span>{{ index.analyse }}</span><br>
-                          </div>
-                        </el-card>
-                      </div>
-                    </el-col>
-                  </el-row>
-                  <el-divider />
-                </div>
-              </template>
-              <template v-for="(index, indexx) in data">
-                <!-- eslint-disable-next-line vue/require-v-for-key -->
-                <div v-if="index.quType === 4" :class="'index' + index">
-                  <el-row :gutter="24">
-                    <el-col :span="20" style="text-align: left">
-                      <!-- 题目: 序号、类型、题干 -->
-                      <div>
-                        <!-- <div class="qu_num">{{ index }}</div> -->
-                        <!-- 【 单选题 】 -->
-                        <div class="qu_content">{{ index.title }}</div>
-                      </div>
-                      <audio-player :src="index.audio" />
+                          <audio-player :src="index.audio" />
+                          <!-- 选项 -->
+                          <el-radio-group class="qu_choose_group">
+                            <el-radio
+                              v-for="(item, indexs) in index.option"
+                              :key="indexs"
+                              :label="item.content"
+                              border
+                              class="qu_choose"
+                              :class="{'imgC':item.image != null && item.image != '','isRight':index.myOption!=null&& isCheck(index.myOption ,item.sort) && item.isRight , 'incorrect':index.myOption!=null && isCheck(index.myOption ,item.sort) && !item.isRight}"
+                            >
+                              <div class="qu_choose_tag">
+                                <div class="qu_choose_tag_type">
+                                  {{ numberToLetter(indexs) }}、{{ item.content }}
+                                </div>
+                                <div v-if="item.image != null && item.image != ''">
+                                  <el-image :src="item.image"
+                                  :preview-src="[item.image]" 
+                                   class="qu_choose_tag_img" />
+                                </div>
+                              </div>
+                            </el-radio>
+                          </el-radio-group>
 
-                      <!-- 选项 -->
-                      <el-radio-group class="qu_choose_group">
-                        <!-- ['A', 'B', 'C', 'D'] -->
-                        <el-input
-                          v-model="index.myOption"
-                          style="margin-top: 10px"
-                          type="textarea"
-                          :autosize="{ minRows: 2, maxRows: 4 }"
-                          placeholder="请输入内容"
-                        />
-                      </el-radio-group>
+                          <!-- 题目解析 -->
+                          <div class="qu_analysis">
+                            <el-card>
+                              <div>
+                                <span>考生答案：</span>
+                                <span>{{ numberToLetter(index.myOption) }}</span><br>
+                              </div>
+                              <div style="margin-top: 8px">
+                                <span>正确答案：</span>
+                                <span>{{ numberToLetter(index.rightOption) }}</span><br>
+                              </div>
+                              <div style="margin-top: 8px">
+                                <span>试题解析：</span>
+                                <span>{{ index.analyse }}</span><br>
+                              </div>
+                            </el-card>
+                          </div>
+                        </el-col>
+                      </el-row>
+                      <el-divider />
+                    </div>
+                    <div
+                      v-if="quType === 4"
+                      :key="'q-' + quType + '-' + indexx"
+                      :class="'index' + index"
+                    >
+                      <el-row :gutter="24">
+                        <el-col :span="20" style="text-align: left">
+                          <div class="qu_content">{{ index.title }}</div>
+                          <audio-player :src="index.audio" />
 
-                      <!-- 题目解析 -->
-                      <div class="qu_analysis">
-                        <el-card>
-                          <div>
-                            <!-- <span>考生答案：</span>
-                            <span
-                              :style="{
-                                color:
-                                  isRight === 1
-                                    ? 'green'
-                                    : isRight === 0
-                                    ? 'red'
-                                    : 'gray',
-                              }"
-                              >{{}}</span
-                            ><br /> -->
+                          <el-radio-group class="qu_choose_group">
+                            <el-input
+                              v-model="index.myOption"
+                              style="margin-top: 10px"
+                              type="textarea"
+                              :autosize="{ minRows: 2, maxRows: 4 }"
+                              placeholder="请输入内容"
+                            />
+                          </el-radio-group>
+
+                          <div class="qu_analysis">
+                            <el-card>
+                              <div style="margin-top: 8px">
+                                <span>正确答案：</span>
+                                <span>{{ index.rightOption }}</span>
+                                <br>
+                              </div>
+                              <div style="margin-top: 8px">
+                                <span>试题解析：</span>
+                                <span>{{ index.analyse }}</span><br>
+                              </div>
+                            </el-card>
                           </div>
-                          <div style="margin-top: 8px">
-                            <span>正确答案：</span>
-                            <span>{{ index.rightOption }}</span>
-                            <br>
+                        </el-col>
+                      </el-row>
+                      <el-divider />
+                    </div>
+                    <div
+                      v-if="quType === 5"
+                      :key="'q-' + quType + '-' + indexx"
+                      :class="'index-fill-' + indexx"
+                    >
+                      <el-row :gutter="24">
+                        <el-col :span="20" style="text-align: left">
+                          <div class="qu_content">
+                            {{ indexx + 1 }}、{{ renderStemWithBlanks(index.title) }}
                           </div>
-                          <div style="margin-top: 8px">
-                            <span>试题解析：</span>
-                            <span>{{ index.analyse }}</span><br>
+                          <div v-if="index.image != null && index.image != ''">
+                            <el-image
+                              :src="index.image"
+                              :preview-src="[index.image]"
+                              style="height: 100px;"
+                            />
                           </div>
-                        </el-card>
-                      </div>
-                    </el-col>
-                  </el-row>
-                  <el-divider />
-                </div>
-              </template>
-              <template v-for="(index, indexx) in data">
-                <!-- eslint-disable-next-line vue/require-v-for-key -->
-                <div v-if="index.quType === 5" :class="'index-fill-' + indexx">
-                  <el-row :gutter="24">
-                    <el-col :span="20" style="text-align: left">
-                      <div class="qu_content">
-                        {{ indexx + 1 }}、{{ renderStemWithBlanks(index.title) }}
-                      </div>
-                      <div v-if="index.image != null && index.image != ''">
-                        <el-image
-                          :src="index.image"
-                          :preview-src="[index.image]"
-                          style="height: 100px;"
-                        />
-                      </div>
-                      <audio-player :src="index.audio" />
-                      <div class="qu_analysis">
-                        <el-card>
-                          <div
-                            v-for="(ans, aIdx) in splitFillAnswers(index.myOption)"
-                            :key="'stu-' + aIdx"
-                            style="margin-top: 4px"
-                          >
-                            <span>考生答案（空{{ aIdx + 1 }}）：</span>
-                            <span>{{ ans || '（未作答）' }}</span>
+                          <audio-player :src="index.audio" />
+                          <div class="qu_analysis">
+                            <el-card>
+                              <div
+                                v-for="(ans, aIdx) in splitFillAnswers(index.myOption)"
+                                :key="'stu-' + aIdx"
+                                style="margin-top: 4px"
+                              >
+                                <span>考生答案（空{{ aIdx + 1 }}）：</span>
+                                <span>{{ ans || '（未作答）' }}</span>
+                              </div>
+                              <div
+                                v-for="(ans, aIdx) in splitFillAnswers(index.rightOption)"
+                                :key="'right-' + aIdx"
+                                style="margin-top: 8px"
+                              >
+                                <span>正确答案（空{{ aIdx + 1 }}）：</span>
+                                <span>{{ ans || '-' }}</span>
+                              </div>
+                              <div style="margin-top: 8px">
+                                <span>试题解析：</span>
+                                <span>{{ index.analyse }}</span>
+                              </div>
+                            </el-card>
                           </div>
-                          <div
-                            v-for="(ans, aIdx) in splitFillAnswers(index.rightOption)"
-                            :key="'right-' + aIdx"
-                            style="margin-top: 8px"
-                          >
-                            <span>正确答案（空{{ aIdx + 1 }}）：</span>
-                            <span>{{ ans || '-' }}</span>
-                          </div>
-                          <div style="margin-top: 8px">
-                            <span>试题解析：</span>
-                            <span>{{ index.analyse }}</span>
-                          </div>
-                        </el-card>
-                      </div>
-                    </el-col>
-                  </el-row>
-                  <el-divider />
-                </div>
+                        </el-col>
+                      </el-row>
+                      <el-divider />
+                    </div>
+                  </template>
+                  </template>
+                </template>
               </template>
             </div>
             <el-divider />
@@ -224,7 +206,32 @@ export default {
       repoId: 0,
       data: {},
       loading: false,
-      showBackToTop: false
+      showBackToTop: false,
+      collapsedTypes: {
+        1: false,
+        2: false,
+        3: false,
+        4: false,
+        5: false
+      }
+    }
+  },
+  computed: {
+    groupedQuestions() {
+      if (!this.data || !Array.isArray(this.data)) return {}
+      const groups = {
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+        5: []
+      }
+      this.data.forEach(item => {
+        if (groups[item.quType]) {
+          groups[item.quType].push(item)
+        }
+      })
+      return groups
     }
   },
   created() {
@@ -241,8 +248,8 @@ export default {
   },
   methods: {
     renderStemWithBlanks,
-    isFirstOfType(item, index) {
-      return index === 0 || (this.data[index - 1] && this.data[index - 1].quType !== item.quType)
+    toggleCollapse(quType) {
+      this.$set(this.collapsedTypes, quType, !this.collapsedTypes[quType])
     },
     getQuestionTypeName(quType) {
       const names = {
@@ -253,9 +260,6 @@ export default {
         5: '填空题'
       }
       return names[quType] || '其他题型'
-    },
-    getQuestionTypeCount(quType) {
-      return (this.data || []).filter(item => item.quType === quType).length
     },
     splitFillAnswers(val) {
       return splitAnswers(val)

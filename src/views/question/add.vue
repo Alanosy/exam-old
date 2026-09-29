@@ -473,9 +473,20 @@ export default {
         content = content.replace(/\{\{TMP(\d+)\}\}/g, '{{$1}}')
         this.$set(this.postForm, 'content', content)
       }
-      this.postForm.options.splice(index, 1)
+      // 标记为删除而不是直接splice，这样后端可以删除对应的选项
+      if (this.postForm.options[index] && this.postForm.options[index].id) {
+        this.postForm.options[index].isDeleted = 1
+      } else {
+        // 如果是新添加的选项（没有id），直接splice
+        this.postForm.options.splice(index, 1)
+      }
+      // 重新排序剩余选项
+      let visibleSort = 0
       this.postForm.options.forEach((opt, i) => {
-        opt.sort = i + 1
+        if (!opt.isDeleted) {
+          opt.sort = visibleSort + 1
+          visibleSort += 1
+        }
       })
     },
     handleAdd() {
@@ -529,6 +540,39 @@ export default {
         }
       }
       if (this.postForm.quType === 5) {
+        // 编辑填空题时，总是根据题干中的空位数量同步选项
+        const blankIndexes = parseBlankIndexes(this.postForm.content || '')
+        const blankCount = blankIndexes.length
+        const currentOptions = this.postForm.options || []
+
+        console.log('填空题保存前同步:', {
+          blankCount,
+          currentOptionsCount: currentOptions.length,
+          blankIndexes
+        })
+
+        // 总是按照题干中的空位数量调整选项
+        // 保留前 blankCount 个选项的内容（如果有id的话）
+        const newOptions = []
+        for (let i = 0; i < blankCount; i++) {
+          if (currentOptions[i]) {
+            newOptions.push({
+              ...currentOptions[i],
+              sort: i + 1,
+              isRight: 1
+            })
+          } else {
+            newOptions.push({
+              isRight: 1,
+              content: '',
+              sort: i + 1
+            })
+          }
+        }
+        this.postForm.options = newOptions
+
+        console.log('同步后options数量:', this.postForm.options.length)
+
         const err = validateBlanks(this.postForm.content, (this.postForm.options || []).length)
         if (err) {
           this.$message({ message: err, type: 'warning' })
