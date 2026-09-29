@@ -14,6 +14,13 @@
               <template v-for="(index,indexx) in data">
                 <!-- eslint-disable-next-line vue/require-v-for-key -->
                 <div
+                  v-if="isFirstOfType(index, indexx)"
+                  :key="'type-' + index.quType"
+                  class="qu-type-header"
+                >
+                  {{ getQuestionTypeName(index.quType) }}（{{ getQuestionTypeCount(index.quType) }}题）
+                </div>
+                <div
                   v-if="index.quType === 1 || index.quType === 2 || index.quType === 3"
                   :class="'index' + index"
                 >
@@ -234,6 +241,22 @@ export default {
   },
   methods: {
     renderStemWithBlanks,
+    isFirstOfType(item, index) {
+      return index === 0 || (this.data[index - 1] && this.data[index - 1].quType !== item.quType)
+    },
+    getQuestionTypeName(quType) {
+      const names = {
+        1: '单选题',
+        2: '多选题',
+        3: '判断题',
+        4: '简答题',
+        5: '填空题'
+      }
+      return names[quType] || '其他题型'
+    },
+    getQuestionTypeCount(quType) {
+      return (this.data || []).filter(item => item.quType === quType).length
+    },
     splitFillAnswers(val) {
       return splitAnswers(val)
     },
@@ -482,6 +505,16 @@ export default {
       width: 80px;
     }
   }
+}
+.qu-type-header {
+  margin: 20px 0 4px;
+  padding: 10px 12px;
+  border-left: 4px solid #0f766e;
+  border-radius: 4px;
+  background: #eef6f3;
+  color: #0f766e;
+  font-size: 16px;
+  font-weight: 700;
 }
 .isRight{
   background-color: rgb(215, 245, 215);
