@@ -92,9 +92,10 @@
             </div>
             <el-input
               ref="contentInput"
+              class="content-textarea"
               v-model="postForm.content"
               type="textarea"
-              :rows="4"
+              :rows="12"
               resize="vertical"
               style="width: 1200px; max-width: 100%"
               @blur="saveContentCursor"
@@ -674,8 +675,9 @@ export default {
   margin-bottom: 22px;
 }
 
-.el-textarea__inner {
+.content-textarea >>> .el-textarea__inner {
   min-height: 120px;
+  height: 260px;
   font-size: 14px;
   line-height: 1.5;
 }

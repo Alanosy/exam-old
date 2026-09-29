@@ -127,26 +127,28 @@ export default {
     }
   },
   created() {
-    this.examId = localStorage.getItem('examId')
-    this.gradeId = localStorage.getItem('gradeId')
-    this.examTitle = localStorage.getItem('examTitle')
-    this.gradeName = localStorage.getItem('gradeName')
+    this.examId = this.$route.query.examId
+    this.gradeId = this.$route.query.gradeId
+    this.examTitle = this.$route.query.examTitle
+    this.gradeName = this.$route.query.gradeName
     this.getScorePage()
   },
-  beforeDestroy() {
-    localStorage.removeItem('examId')
-    localStorage.removeItem('gradeId')
-  },
   methods: {
-    updateRow(row) {
+      updateRow(row) {
         row.type= 1;
-        console.log(row)
-        localStorage.setItem('record_exam_examId', row.examId)
+        sessionStorage.setItem('exam_record_context', JSON.stringify({
+          examId: row.examId,
+          userId: row.userId
+        }))
         this.$router.push({ name: 'exam-record-detail', query: { data: row }})
       },
     // 分页查询
     async getScorePage() {
-
+      if (this.examId == null || this.examId === '' || this.gradeId == null || this.gradeId === '') {
+        this.data = {}
+        this.$message.warning('缺少考试或班级参数，请从成绩分析重新进入')
+        return
+      }
       await this.withPageLoading(async () => {
         const params = {
           pageNum: this.pageNum,

@@ -198,7 +198,10 @@ export default {
     },
 
     screenInfo(row) {
-      localStorage.setItem('record_exam_examId', row.id)
+      sessionStorage.setItem('exam_record_context', JSON.stringify({
+        examId: row.id,
+        userId: row.userId
+      }))
       this.$router.push({ name: 'exam-record-detail', query: { zhi: row }})
     },
 

@@ -95,11 +95,15 @@ export default {
       },
       cancle() {},
       updateRow(row) {
-        localStorage.setItem('examId', row.examId)
-        localStorage.setItem('gradeId', row.gradeId)
-        localStorage.setItem('examTitle', row.examTitle)
-        localStorage.setItem('gradeName', row.gradeName)
-        this.$router.push({ name: 'user-score' })
+        this.$router.push({
+          name: 'user-score',
+          query: {
+            examId: row.examId,
+            gradeId: row.gradeId,
+            examTitle: row.examTitle,
+            gradeName: row.gradeName
+          }
+        })
       },
       diaTitle: '',
       dialogTableVisible: false,

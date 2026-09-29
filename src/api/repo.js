@@ -31,6 +31,14 @@ export function repoUpdate(id, data) {
   })
 }
 
+export function repoSort(id, direction) {
+  return request({
+    url: `repo/${id}/sort`,
+    method: 'put',
+    params: { direction }
+  })
+}
+
 /**
  * 保存题库
  * @param data

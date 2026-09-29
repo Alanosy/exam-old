@@ -786,8 +786,7 @@ export default {
         // 根据新加载的题目数据，恢复用户已选的答案 (如果之前保存过)
         // 注意：quDetail API 返回的数据结构中似乎包含了用户的答案信息 (checkout 字段 和 content for SAQ)
         if (response.data.quType === 4) {
-           // 后端返回的 answerList[0].content 应该是用户之前填写的简答题内容
-           this.saqTextarea = response.data.answerList?.[0]?.content || '' // 安全访问
+           this.saqTextarea = response.data.userAnswer || ''
         } else if (response.data.quType === 5) {
           const blankCount = countBlanks(response.data.content) ||
             (response.data.answerList && response.data.answerList.length) || 1

@@ -299,11 +299,21 @@ export default {
     };
   },
   created() {
-    if (this.$route.query?.data?.type === 1) {
-      this.userId = this.$route.query.data.userId;
+    const query = this.$route.query || {};
+    const record = query.data || query.zhi || {};
+    let context = {};
+    try {
+      context = JSON.parse(sessionStorage.getItem("exam_record_context") || "{}");
+    } catch (error) {
+      context = {};
     }
-    // this.examId=this.$route.query.zhi.examId
-    this.examId = localStorage.getItem("record_exam_examId");
+    this.userId = record.userId != null ? record.userId : context.userId;
+    this.examId = record.examId || record.id || context.examId;
+    if (this.examId == null || this.examId === "") {
+      this.data = [];
+      this.$message.warning("缺少考试参数，请从考试记录重新进入");
+      return;
+    }
     this.ExamDetail();
   },
   methods: {

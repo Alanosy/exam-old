@@ -1,7 +1,19 @@
-import router from '@/router'
+function restoreTags() {
+  let tags = []
+  try {
+    tags = JSON.parse(sessionStorage.getItem('TAGS')) || []
+  } catch (error) {
+    tags = []
+  }
+  const contextPaths = ['/exam-record-detail', '/user-score']
+  return tags.filter(item => {
+    const path = item && (item.fullPath || item.path)
+    return !!path && (!contextPaths.includes(item.path) || !!item.fullPath)
+  })
+}
 
 const state = {
-  tags: JSON.parse(sessionStorage.getItem('TAGS')) || []
+  tags: restoreTags()
 }
 
 const losePath = ['/404']
@@ -13,11 +25,12 @@ function isHomeTag(tag) {
 const mutations = {
   // 添加标签
   ADD_TAG: (state, tag) => {
-    const pathList = state.tags.map(item => item.path)
+    const tagKey = tag.fullPath || tag.path
+    const pathList = state.tags.map(item => item.fullPath || item.path)
     if (!losePath.includes(tag.path)) {
-      if (pathList.includes(tag.path)) {
+      if (pathList.includes(tagKey)) {
         state.tags.forEach(item => {
-          if (item.path === tag.path) {
+          if ((item.fullPath || item.path) === tagKey) {
             item.checked = true
           } else {
             item.checked = false
@@ -45,14 +58,9 @@ const mutations = {
     if (isHomeTag(tag)) {
       return
     }
-    state.tags.map((item, index) => {
-      if (item.title === tag.title) {
-        state.tags.splice(index, 1)
-        if (router.history.current.fullPath === tag.path) {
-          router.push(state.tags[state.tags.length - 1].path)
-        }
-      }
-    })
+    state.tags = state.tags.filter(
+      item => (item.fullPath || item.path) !== (tag.fullPath || tag.path)
+    )
     sessionStorage.setItem('TAGS', JSON.stringify(state.tags))
   },
   // 关闭全部页签，仅保留首页

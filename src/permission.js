@@ -25,6 +25,7 @@ router.beforeEach(async(to, from, next) => {
   } else {
     store.commit('menu/ADD_TAG', {
       path: to.path,
+      fullPath: to.fullPath,
       checked: false,
       title: to.meta.title
     })

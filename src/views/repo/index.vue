@@ -10,13 +10,24 @@
         <el-input v-model="searchTitle" placeholder="请输入查询内容" />
       </el-form-item>
       <el-form-item label="题库分类:">
-        <el-select v-model="searchCategory" placeholder="请选择分类" clearable>
+        <el-select
+          v-model="searchCategory"
+          :placeholder="categoryLoading ? '分类加载中...' : '请选择分类'"
+          :loading="categoryLoading"
+          clearable
+        >
           <el-option
             v-for="item in categoryOptions"
             :key="item.id"
             :label="item.name"
             :value="item.id"
           />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="是否刷题:">
+        <el-select v-model="searchIsExercise" placeholder="请选择" clearable>
+          <el-option label="已开启" :value="1" />
+          <el-option label="未开启" :value="0" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -69,8 +80,18 @@
           <el-tag v-else type="info">未绑定</el-tag>
         </template>
       </el-table-column>
-      <el-table-column min-width="140" label="操作" align="center">
+      <el-table-column min-width="230" label="操作" align="center">
         <template slot-scope="{ row }">
+          <el-tooltip content="请清除筛选条件后再排序" placement="top" :disabled="hasNoRepoFilter">
+            <span class="repo-sort-button">
+              <el-button type="text" size="small" style="font-size: 14px" :disabled="!hasNoRepoFilter" @click="moveRepo(row, 'up')">上移</el-button>
+            </span>
+          </el-tooltip>
+          <el-tooltip content="请清除筛选条件后再排序" placement="top" :disabled="hasNoRepoFilter">
+            <span class="repo-sort-button">
+              <el-button type="text" size="small" style="font-size: 14px" :disabled="!hasNoRepoFilter" @click="moveRepo(row, 'down')">下移</el-button>
+            </span>
+          </el-tooltip>
           <el-button type="text" size="small" style="font-size: 14px" @click="updateRow(row)">编辑</el-button>
           <el-button type="text" size="small" style="color: red; font-size: 14px" @click="delRepo(row)">删除</el-button>
         </template>
@@ -152,9 +173,16 @@
     <!-- 分类管理对话框 -->
     <el-dialog title="题库分类管理" :visible.sync="categoryDialogVisible" width="600px">
       <div class="category-header">
-        <el-button type="primary" size="small" @click="addCategory">添加分类</el-button>
+        <el-button type="primary" size="small" :loading="categoryLoading" @click="addCategory">添加分类</el-button>
       </div>
-      <el-table class="flex-list-table" :data="categoryList" border style="width: 100%">
+      <el-table
+        class="flex-list-table"
+        v-loading="categoryLoading"
+        element-loading-text="正在加载分类..."
+        :data="categoryList"
+        border
+        style="width: 100%"
+      >
         <el-table-column prop="name" label="分类名称" />
         <el-table-column prop="parentName" label="父级分类" />
         <el-table-column label="操作" min-width="150">
@@ -215,7 +243,7 @@
 </template>
 
 <script>
-import { repoPaging, repoDel, repoUpdate, repoAdd } from '@/api/repo'
+import { repoPaging, repoDel, repoUpdate, repoAdd, repoSort } from '@/api/repo'
 import { getCategoryTree, addCategory, updateCategory, deleteCategory } from '@/api/category'
 import ClassSelect from '@/components/ClassSelect'
 
@@ -240,6 +268,7 @@ export default {
       delVisible: false,
       searchTitle: '',
       searchCategory: '',
+      searchIsExercise: null,
       Obj: {},
       formInline: {
         searchTitle: ''
@@ -273,16 +302,22 @@ export default {
         parentId: null
       },
       categoryOptions: [],
-      categoryList: []
+      categoryList: [],
+      categoryLoading: false
     }
   },
   created() {
     this.getRepoPage()
     this.fetchCategories()
   },
+  computed: {
+    hasNoRepoFilter() {
+      return !this.searchTitle && !this.searchCategory && this.searchIsExercise === null
+    }
+  },
   methods: {
     // 分页查询
-    async getRepoPage(pageNum = this.pageNum, pageSize = this.pageSize, title = null, categoryId = null) {
+    async getRepoPage(pageNum = this.pageNum, pageSize = this.pageSize, title = null, categoryId = null, isExercise = null) {
 
       await this.withPageLoading(async () => {
         try {
@@ -290,7 +325,8 @@ export default {
             pageNum: pageNum,
             pageSize: pageSize,
             title: title,
-            categoryId: categoryId
+            categoryId: categoryId,
+            isExercise: isExercise
           }
           const res = await repoPaging(params)
           if (res.code) {
@@ -308,6 +344,7 @@ export default {
       },
     // 获取分类列表
     async fetchCategories() {
+      this.categoryLoading = true
       try {
         const res = await getCategoryTree()
         if (res.code) {
@@ -320,6 +357,8 @@ export default {
       } catch (error) {
         console.error('获取分类失败:', error)
         this.$message.error('获取分类数据失败')
+      } finally {
+        this.categoryLoading = false
       }
     },
     // 将分类树扁平化为列表
@@ -355,7 +394,7 @@ export default {
       return result
     },
     searchRepo() {
-      this.getRepoPage(this.pageNum, this.pageSize, this.searchTitle, this.searchCategory)
+      this.getRepoPage(this.pageNum, this.pageSize, this.searchTitle, this.searchCategory, this.searchIsExercise)
     },
     openAddRepo() {
       this.addRepoForm = {
@@ -368,6 +407,21 @@ export default {
     },
     formatGradeIds(gradeIds) {
       return (gradeIds || []).join(',')
+    },
+    async moveRepo(row, direction) {
+      if (!this.hasNoRepoFilter) {
+        this.$message.warning('请清除筛选条件后再调整顺序')
+        return
+      }
+      try {
+        const res = await repoSort(row.id, direction)
+        if (res.code) {
+          this.$message.success(res.msg || '排序已更新')
+          this.getRepoPage(this.pageNum, this.pageSize, this.searchTitle, this.searchCategory, this.searchIsExercise)
+        }
+      } catch (error) {
+        console.error('调整题库顺序失败:', error)
+      }
     },
     updateRow(row) {
       this.dialogFormVisible = true
@@ -594,12 +648,12 @@ export default {
     handleSizeChange(val) {
       // 设置每页多少条逻辑
       this.pageSize = val
-      this.getRepoPage(this.pageNum, val, this.searchTitle, this.searchCategory)
+      this.getRepoPage(this.pageNum, val, this.searchTitle, this.searchCategory, this.searchIsExercise)
     },
     handleCurrentChange(val) {
       // 设置当前页逻辑
       this.pageNum = val
-      this.getRepoPage(val, this.pageSize, this.searchTitle, this.searchCategory)
+      this.getRepoPage(val, this.pageSize, this.searchTitle, this.searchCategory, this.searchIsExercise)
     }
   }
 }

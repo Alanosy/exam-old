@@ -62,11 +62,11 @@
         <template v-for="(item,index) in tags">
           <el-tag
             v-if="item.title"
-            :key="index"
+            :key="item.fullPath || item.path"
             :closable="!isHomeTag(item)"
             disable-transitions
             :class="{ active: item.checked }"
-            @click="$router.push(item.path)"
+            @click="$router.push(item.fullPath || item.path)"
             @close="handleTagClose(item)"
           >
             {{ item.title }}
@@ -193,16 +193,14 @@ export default {
       this.roleDefaultFailed = true
     },
     handleTagClose(item) {
-      if (this.$route.path === item.path) {
-        this.$store.commit('menu/REMOVE_TAG', item)
+      const closeKey = item.fullPath || item.path
+      this.$store.commit('menu/REMOVE_TAG', item)
+      if (this.$route.fullPath === closeKey) {
         const tags = this.$store.state.menu.tags
-        if (tags.length > 0) {
-          this.$router.push(tags[tags.length - 1].path).then(() => {
-            window.location.reload()
-          })
+        const fallback = tags[tags.length - 1]
+        if (fallback) {
+          this.$router.push(fallback.fullPath || fallback.path)
         }
-      } else {
-        this.$store.commit('menu/REMOVE_TAG', item)
       }
     },
     decode() {
