@@ -22,7 +22,12 @@ function decodeBase64Url(input) {
     default:
       throw new Error('Invalid base64 string')
   }
-  return decodeURIComponent(atob(base64))
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return new TextDecoder('utf-8').decode(bytes)
 }
 
 // export function getTokenInfo() {
@@ -42,4 +47,3 @@ export function getRole() {
   const decodedToken = jwtDecode(token)
   return JSON.parse(decodedToken.userInfo)['roleId'] // 假设userInfo是直接在payload中的
 }
-
