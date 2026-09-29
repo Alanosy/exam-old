@@ -39,7 +39,9 @@
       <el-table-column min-width="120" prop="realName" label="真实姓名" align="center" />
       <el-table-column min-width="80" prop="userScore" label="用户得分" align="center" />
       <el-table-column min-width="72" prop="count" label="切屏次数" align="center" />
-      <el-table-column min-width="90" prop="userTime" label="用户用时" align="center" />
+      <el-table-column min-width="110" prop="userTime" label="用户用时" align="center">
+        <template slot-scope="scope">{{ formatDuration(scope.row.userTime) }}</template>
+      </el-table-column>
       <el-table-column min-width="148" class-name="datetime-col" prop="limitTime" label="提交时间" align="center" />
       
       <el-table-column min-width="140" label="操作" align="center">
@@ -71,6 +73,7 @@
 <script>
 import { scorePaging, exportScores } from '@/api/score'
 import pageLoading from '@/mixin/pageLoading'
+import { formatDuration } from '@/utils/duration'
 export default {
   mixins: [pageLoading],
   data() {
@@ -134,6 +137,7 @@ export default {
     this.getScorePage()
   },
   methods: {
+      formatDuration,
       updateRow(row) {
         row.type= 1;
         sessionStorage.setItem('exam_record_context', JSON.stringify({

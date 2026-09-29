@@ -19,7 +19,7 @@ export function classPaging(params) {
 
 export function classDel(id) {
   return request({
-    url: '/grades/delete//' + id,
+    url: `grades/delete/${id}`,
     method: 'delete'
   })
 }

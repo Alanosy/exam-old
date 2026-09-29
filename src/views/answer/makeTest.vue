@@ -366,6 +366,7 @@ import { recordExamDetail } from '@/api/record'
 import pageLoading from '@/mixin/pageLoading'
 import AudioPlayer from '@/components/AudioPlayer'
 import { renderStemWithBlanks, splitAnswers, matchBlank } from '@/utils/blankPlaceholder'
+import { formatDuration } from '@/utils/duration'
 
 var TYPE_META = [
   {
@@ -578,15 +579,7 @@ export default {
       }
       return list
     },
-    formatDuration(seconds) {
-      if (seconds == null || seconds === '') return '-'
-      const n = Number(seconds)
-      if (isNaN(n) || n < 0) return '-'
-      const m = Math.floor(n / 60)
-      const s = Math.floor(n % 60)
-      if (m <= 0) return s + ' 秒'
-      return m + ' 分 ' + s + ' 秒'
-    },
+    formatDuration,
     expandAll() {
       this.activeTypes = this.typeGroups.map(g => String(g.type))
     },
@@ -1024,12 +1017,19 @@ export default {
   }
 
   .qu_assign_score {
-    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
     height: 100px;
-    padding-top: 35px;
+    white-space: nowrap;
 
     .qu_assign_score_content {
       width: 80px;
+    }
+
+    ::v-deep .el-input-number.is-disabled .el-input__inner {
+      background: #fff;
     }
   }
 

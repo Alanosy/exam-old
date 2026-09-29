@@ -77,7 +77,7 @@
       <el-table-column min-width="90" prop="examDuration" align="center" label="考试时长（分钟）" />
       <el-table-column min-width="90" prop="userTime" align="center" label="用户用时">
         <template slot-scope="scope">
-          <div>{{ (Math.ceil(scope.row.userTime/60)).toString() + " 分钟" }}</div>
+          <div>{{ formatDuration(scope.row.userTime) }}</div>
         </template>
       </el-table-column>
       <el-table-column min-width="140" align="center" label="操作">
@@ -104,7 +104,7 @@
           </span>
         </div>
         <div class="h5-card-row"><span>考试时长</span><span>{{ row.examDuration }} 分钟</span></div>
-        <div class="h5-card-row"><span>实际用时</span><span>{{ Math.ceil(row.userTime / 60) }} 分钟</span></div>
+        <div class="h5-card-row"><span>实际用时</span><span>{{ formatDuration(row.userTime) }}</span></div>
         <div class="h5-card-actions">
           <el-button type="primary" size="small" @click="screenInfo(row)">查看</el-button>
         </div>
@@ -128,6 +128,7 @@
 <script>
 import { recordExamPaging } from '@/api/record'
 import pageLoading from '@/mixin/pageLoading'
+import { formatDuration } from '@/utils/duration'
 export default {
   mixins: [pageLoading],
   namespaced: true,
@@ -180,6 +181,7 @@ export default {
     this.getExamRecordPaging()
   },
   methods: {
+    formatDuration,
 
     searchExam() {
       this.getExamRecordPaging(this.pageNum, this.pageSize, this.searchTitle)

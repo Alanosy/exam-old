@@ -243,20 +243,13 @@
                       <div class="qu_analysis">
                         <el-card>
                           <div
-                            v-for="(ans, aIdx) in splitFillAnswers(index.myOption)"
-                            :key="'stu-' + aIdx"
+                            v-for="(blank, aIdx) in fillBlankRows(index)"
+                            :key="'blank-' + aIdx"
                             style="margin-top: 4px"
                           >
-                            <span>考生答案（空{{ aIdx + 1 }}）：</span>
-                            <span>{{ ans || '（未作答）' }}</span>
-                          </div>
-                          <div
-                            v-for="(ans, aIdx) in splitFillAnswers(index.rightOption)"
-                            :key="'right-' + aIdx"
-                            style="margin-top: 8px"
-                          >
-                            <span>正确答案（空{{ aIdx + 1 }}）：</span>
-                            <span>{{ ans || '-' }}</span>
+                            <span>空{{ aIdx + 1 }}：</span>
+                            <span class="fill-user-answer">考生答案「{{ blank.userAnswer || '未作答' }}」</span>
+                            <span class="fill-right-answer">正确答案「{{ blank.rightAnswer || '-' }}」</span>
                           </div>
                           <div style="margin-top: 8px">
                             <span>试题解析：</span>
@@ -320,6 +313,16 @@ export default {
     renderStemWithBlanks,
     splitFillAnswers(val) {
       return splitAnswers(val)
+    },
+    fillBlankRows(item) {
+      const userAnswers = this.splitFillAnswers(item.myOption)
+      const rightAnswers = this.splitFillAnswers(item.rightOption)
+      const blankCount = Math.max(userAnswers.length, rightAnswers.length)
+
+      return Array.from({ length: blankCount }, (_, index) => ({
+        userAnswer: userAnswers[index] || '',
+        rightAnswer: rightAnswers[index] || ''
+      }))
     },
     isCheck(myOption, sort) {
       const arr = myOption.split(",").map(Number); // 将字符串转换为数字数组
@@ -536,6 +539,15 @@ export default {
   // 试题解析
   .qu_analysis {
     padding: 10px;
+
+    .fill-user-answer {
+      color: #67c23a;
+    }
+
+    .fill-right-answer {
+      margin-left: 12px;
+      color: #f56c6c;
+    }
 
     .qu_analysis_content {
       padding-top: 10px;
