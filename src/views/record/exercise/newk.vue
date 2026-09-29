@@ -189,6 +189,17 @@
         </el-col>
       </el-main>
     </el-container>
+    <transition name="fade">
+      <button
+        v-show="showBackToTop"
+        type="button"
+        class="back-to-top"
+        title="回到顶部"
+        @click="scrollToTop"
+      >
+        <i class="el-icon-top" />
+      </button>
+    </transition>
   </el-container>
 </template>
 
@@ -205,13 +216,21 @@ export default {
       quIndex: -1,
       repoId: 0,
       data: {},
-      loading: false
+      loading: false,
+      showBackToTop: false
     }
   },
   created() {
     // this.examId=this.$route.query.zhi.examId
     this.repoId = localStorage.getItem('record_exercise_repoId')
     this.ExerciseDetail()
+  },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll, { passive: true })
+    this.handleScroll()
+  },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleScroll)
   },
   methods: {
     renderStemWithBlanks,
@@ -277,6 +296,12 @@ export default {
       // 题目滑动到锚定点
       const page = document.querySelector('.index' + index)
       page.scrollIntoView()
+    },
+    handleScroll() {
+      this.showBackToTop = window.pageYOffset > 200
+    },
+    scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 }
@@ -325,6 +350,7 @@ export default {
   width: 70%;
   overflow: visible;
   box-sizing: border-box;
+  min-height: calc(100vh - 180px);
 }
 
 @media screen and (max-width: 991px) {
@@ -346,7 +372,30 @@ export default {
 // 试题内容样式
 .qu_list {
   width: 100%;
+  min-height: calc(100vh - 220px);
   page-break-after: always;
+
+  ::v-deep .el-loading-mask {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  ::v-deep .el-loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: auto;
+    margin: 0;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  ::v-deep .el-loading-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f766e;
+  }
 
   .qu_num {
     display: inline-block;
@@ -455,5 +504,30 @@ export default {
 
 .imgC{
   height:150px
+}
+.back-to-top {
+  position: fixed;
+  right: 32px;
+  bottom: 40px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  background: #0f766e;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+  cursor: pointer;
+  z-index: 2000;
+}
+.back-to-top:hover {
+  background: #115e59;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

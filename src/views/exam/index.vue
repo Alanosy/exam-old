@@ -210,6 +210,7 @@
     <button v-if="isMobile" type="button" class="exam-sheet-toggle" @click="sheetOpen = !sheetOpen">
       {{ sheetOpen ? '收起答题卡' : '答题卡' }}
     </button>
+    <back-to-top />
   </div>
 </template>
 
@@ -227,6 +228,7 @@ import ExamTimer from '@/components/ExamTimer'
 import QuestionCardSection from './components/QuestionCardSection'
 import ExamSummaryDialog from './components/ExamSummaryDialog'
 import AudioPlayer from '@/components/AudioPlayer'
+import BackToTop from '@/components/BackToTop'
 import {
   renderStemWithBlanks,
   splitAnswers,
@@ -240,7 +242,8 @@ export default {
     ExamTimer,
     QuestionCardSection,
     ExamSummaryDialog,
-    AudioPlayer
+    AudioPlayer,
+    BackToTop
   },
   data() {
     return {

@@ -357,6 +357,19 @@
         <div v-if="!levelStats.length" class="detail-muted">暂无难度数据</div>
       </template>
     </div>
+
+    <transition name="back-top-fade">
+      <button
+        v-show="showBackToTop"
+        type="button"
+        class="back-to-top"
+        :class="{ 'with-detail-float': !floatCollapsed }"
+        title="回到顶部"
+        @click="scrollToTop"
+      >
+        <i class="el-icon-top" />
+      </button>
+    </transition>
   </div>
 </template>
 
@@ -364,6 +377,7 @@
 import { answerDetail, answerPaperSummary, correct, myAnswerDetail, myAnswerPaperSummary } from '@/api/answer'
 import { recordExamDetail } from '@/api/record'
 import { quDetail } from '@/api/exam'
+import { getRole } from '@/utils/auth'
 import pageLoading from '@/mixin/pageLoading'
 import AudioPlayer from '@/components/AudioPlayer'
 import { renderStemWithBlanks, splitAnswers, matchBlank } from '@/utils/blankPlaceholder'
@@ -413,12 +427,13 @@ export default {
       allQuestions: [],
       activeTypes: [],
       summary: {},
-      floatCollapsed: false
+      floatCollapsed: false,
+      showBackToTop: false
     }
   },
   computed: {
     isStudent() {
-      return this.$route.meta.roles.includes('student')
+      return getRole() === 'student'
     },
     readonly() {
       const info = this.info || {}
@@ -499,9 +514,12 @@ export default {
   },
   mounted() {
     this.mountFixedPanels()
+    window.addEventListener('scroll', this.handleScroll, { passive: true })
+    this.handleScroll()
   },
   beforeDestroy() {
     this.unmountFixedPanels()
+    window.removeEventListener('scroll', this.handleScroll)
   },
   methods: {
     mountFixedPanels() {
@@ -519,6 +537,12 @@ export default {
           el.parentNode.removeChild(el)
         }
       })
+    },
+    handleScroll() {
+      this.showBackToTop = window.pageYOffset > 200
+    },
+    scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     },
     renderStemWithBlanks,
     splitFillAnswers(val) {
@@ -625,7 +649,7 @@ export default {
         const examId = this.info.examId
         const userId = this.info.userId
         const params = { examId: examId, userId: userId }
-        const isStudent = this.$route.meta.roles.includes('student')
+        const isStudent = this.isStudent
         const recordRes = await recordExamDetail(params)
         const recordList = recordRes.data || []
         let scoreList = []
@@ -1037,6 +1061,35 @@ export default {
 .detail-muted {
   font-size: 12px;
   color: #c0c4cc;
+}
+
+.back-to-top {
+  position: fixed;
+  right: 32px;
+  bottom: 40px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  background: #0f766e;
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+  cursor: pointer;
+  z-index: 2100;
+}
+.back-to-top:hover {
+  background: #115e59;
+}
+.back-to-top.with-detail-float {
+  right: 316px;
+}
+.back-top-fade-enter-active,
+.back-top-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.back-top-fade-enter,
+.back-top-fade-leave-to {
+  opacity: 0;
 }
 
 .qu_list {

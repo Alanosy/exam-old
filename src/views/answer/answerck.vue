@@ -72,14 +72,17 @@
       />
     </div>
 
+    <back-to-top />
   </div>
 </template>
 
 <script>
 import { answerUserPging } from '@/api/answer'
 import pageLoading from '@/mixin/pageLoading'
+import BackToTop from '@/components/BackToTop'
 export default {
   mixins: [pageLoading],
+  components: { BackToTop },
   data() {
     return {
       pageNum: 1,

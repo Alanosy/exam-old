@@ -127,13 +127,16 @@
         <el-button type="primary" @click="dialogFormVisible = false">确 定</el-button>
       </div>
     </el-dialog> -->
+    <back-to-top />
   </div>
 </template>
 <script>
 import { answerExamPging } from '@/api/answer'
 import pageLoading from '@/mixin/pageLoading'
+import BackToTop from '@/components/BackToTop'
 export default {
   mixins: [pageLoading],
+  components: { BackToTop },
   data() {
     return {
       pageNum: 1,

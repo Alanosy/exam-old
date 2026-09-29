@@ -318,14 +318,17 @@
         <el-button type="primary" @click="updateExam()">确 定</el-button>
       </div>
     </el-dialog>
+    <back-to-top />
   </div>
 </template>
 
 <script>
 import { examPaging, examUpdate, examDel } from '@/api/exam'
 import pageLoading from '@/mixin/pageLoading'
+import BackToTop from '@/components/BackToTop'
 export default {
   mixins: [pageLoading],
+  components: { BackToTop },
   data() {
     return {
       pageNum: 1,

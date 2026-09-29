@@ -268,6 +268,7 @@
         <el-button type="primary" @click="previewVisible = false">关 闭</el-button>
       </div>
     </el-dialog>
+    <back-to-top />
   </div>
 </template>
 
@@ -277,6 +278,7 @@ import RepoSelect from '@/components/RepoSelect'
 import FileUpload from '@/components/FileUpload'
 import AudioPlayer from '@/components/AudioPlayer'
 import QuestionPreview from '@/components/QuestionPreview'
+import BackToTop from '@/components/BackToTop'
 import pageLoading from '@/mixin/pageLoading'
 import {
   insertBlankAt,
@@ -290,7 +292,7 @@ const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 export default {
 
   name: 'QuDetail',
-  components: { FileUpload, RepoSelect, AudioPlayer, QuestionPreview },
+  components: { FileUpload, RepoSelect, AudioPlayer, QuestionPreview, BackToTop },
   mixins: [pageLoading],
 
   data() {

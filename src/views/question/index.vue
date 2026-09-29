@@ -237,6 +237,7 @@
         <el-button type="primary" @click="updateQu">确 定</el-button>
       </div>
     </el-dialog> -->
+    <back-to-top />
   </div>
 </template>
 
@@ -244,11 +245,12 @@
 import { quPaging, quDel, quUpdate, importQue, quSort, quDetail } from '@/api/question'
 import RepoSelect from '@/components/RepoSelect'
 import QuestionPreview from '@/components/QuestionPreview'
+import BackToTop from '@/components/BackToTop'
 
 import pageLoading from '@/mixin/pageLoading'
 export default {
   mixins: [pageLoading],
-  components: { RepoSelect, QuestionPreview },
+  components: { RepoSelect, QuestionPreview, BackToTop },
   data() {
     return {
       options: [

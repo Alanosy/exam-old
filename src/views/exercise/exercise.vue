@@ -286,6 +286,7 @@
     <button v-if="isMobile" type="button" class="exam-sheet-toggle" @click="sheetOpen = !sheetOpen">
       {{ sheetOpen ? '收起答题卡' : '答题卡' }}
     </button>
+    <back-to-top />
   </div>
 </template>
 
@@ -293,6 +294,7 @@
 import { getQuestion, getQuestionDetail, submitAnswer, getAnswerInfo } from '@/api/exercise'
 import { Loading } from 'element-ui'
 import AudioPlayer from '@/components/AudioPlayer'
+import BackToTop from '@/components/BackToTop'
 import {
   renderStemWithBlanks,
   splitAnswers,
@@ -302,7 +304,7 @@ import {
 
 export default {
   name: 'ExamProcess',
-  components: { AudioPlayer },
+  components: { AudioPlayer, BackToTop },
 
   data() {
     return {

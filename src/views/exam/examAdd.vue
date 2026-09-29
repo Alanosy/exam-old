@@ -378,6 +378,7 @@
         <el-button type="primary" :loading="saving" @click="confirmAndSave">确认保存</el-button>
       </div>
     </el-dialog>
+    <back-to-top />
   </div>
 </template>
 
@@ -388,6 +389,7 @@ import ClassSelect from "@/components/ClassSelect";
 import CertificateSelect from "@/components/CertificateSelect";
 import { saveData } from "@/api/exam";
 import ChooseQuestion from "@/components/ExamComponents/ChooseQuestion";
+import BackToTop from "@/components/BackToTop";
 export default {
   name: "ExamDetail",
 
@@ -396,6 +398,7 @@ export default {
     ChooseQuestion,
     ClassSelect,
     CertificateSelect,
+    BackToTop
   },
   data() {
     return {

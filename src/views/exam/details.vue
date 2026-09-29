@@ -475,6 +475,7 @@
         <el-button type="primary" @click="confirmClassDialog">确定</el-button>
       </span>
     </el-dialog>
+    <back-to-top />
   </div>
 </template>
 
@@ -484,6 +485,7 @@ import { quPaging, quDetail } from '@/api/question'
 import { fetchClasses } from '@/api/class_'
 import AudioPlayer from '@/components/AudioPlayer'
 import RepoSelect from '@/components/RepoSelect'
+import BackToTop from '@/components/BackToTop'
 import { renderStemWithBlanks, joinAnswers } from '@/utils/blankPlaceholder'
 
 const QU_TYPE_MAP = {
@@ -496,7 +498,7 @@ const QU_TYPE_MAP = {
 
 export default {
   name: 'ExamDetails',
-  components: { AudioPlayer, RepoSelect },
+  components: { AudioPlayer, RepoSelect, BackToTop },
   data() {
     return {
       loading: false,
