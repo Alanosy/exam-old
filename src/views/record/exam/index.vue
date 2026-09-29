@@ -129,6 +129,7 @@
 import { recordExamPaging } from '@/api/record'
 import pageLoading from '@/mixin/pageLoading'
 import { formatDuration } from '@/utils/duration'
+import { getUserId } from '@/utils/auth'
 export default {
   mixins: [pageLoading],
   namespaced: true,
@@ -200,9 +201,15 @@ export default {
     },
 
     screenInfo(row) {
+      sessionStorage.setItem('answer_info', JSON.stringify({
+        ...row,
+        examId: row.id,
+        userId: row.userId != null ? row.userId : getUserId(),
+        whetherMark: 1
+      }))
       sessionStorage.setItem('exam_record_context', JSON.stringify({
         examId: row.id,
-        userId: row.userId
+        userId: row.userId != null ? row.userId : getUserId()
       }))
       this.$router.push({ name: 'exam-record-detail', query: { zhi: row }})
     },

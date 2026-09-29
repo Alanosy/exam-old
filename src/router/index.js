@@ -232,7 +232,7 @@ export const constantRoutes = [
       path: '/exam-record-detail',
       name: 'exam-record-detail',
       hidden: true,
-      component: () => import('@/views/record/exam/newk'),
+      component: () => import('@/views/answer/makeTest'),
       meta: { title: '考试记录查看', visible: true, roles: ['teacher', 'admin', 'student'], icon: 'dashboard' }
     }]
   },

@@ -110,7 +110,7 @@
                       <div class="qu_analysis">
                         <el-card>
                           <template v-if="isObjective(wrap.item.quType)">
-                            <div class="result-line">
+                            <div v-if="!isStudent" class="result-line">
                               <span>作答结果：</span>
                               <el-tag
                                 size="mini"
@@ -248,7 +248,7 @@
           <el-divider />
           <p>
             共 <span class="hl">{{ allQuestions.length }}</span> 题
-            <template v-if="manualTargets.length">
+            <template v-if="showPendingMark">
               ，待阅 <span class="hl">{{ manualTargets.length }}</span> 题
             </template>
           </p>
@@ -270,7 +270,7 @@
                   class="nav-cell"
                   :class="{
                     active: wrap.globalIndex === quIndex,
-                    pending: needManualScore(wrap.item)
+                    pending: showPendingMark && needManualScore(wrap.item)
                   }"
                   :title="'第' + (wrap.globalIndex + 1) + '题 · ' + group.name"
                   @click="handleTag(wrap.globalIndex)"
@@ -361,8 +361,9 @@
 </template>
 
 <script>
-import { answerDetail, answerPaperSummary, correct } from '@/api/answer'
+import { answerDetail, answerPaperSummary, correct, myAnswerDetail, myAnswerPaperSummary } from '@/api/answer'
 import { recordExamDetail } from '@/api/record'
+import { quDetail } from '@/api/exam'
 import pageLoading from '@/mixin/pageLoading'
 import AudioPlayer from '@/components/AudioPlayer'
 import { renderStemWithBlanks, splitAnswers, matchBlank } from '@/utils/blankPlaceholder'
@@ -416,6 +417,9 @@ export default {
     }
   },
   computed: {
+    isStudent() {
+      return this.$route.meta.roles.includes('student')
+    },
     readonly() {
       const info = this.info || {}
       if (Number(info.whetherMark) === 1) return true
@@ -457,6 +461,9 @@ export default {
     },
     manualTargets() {
       return this.allQuestions.filter(item => this.needManualScore(item))
+    },
+    showPendingMark() {
+      return !this.isStudent && !this.readonly && this.manualTargets.length > 0
     },
     paperTotalSum() {
       return this.typeGroups.reduce((s, g) => s + g.total, 0)
@@ -580,6 +587,19 @@ export default {
       return list
     },
     formatDuration,
+    getSavedAnswer(response) {
+      const detail = (response && response.data) || response || {}
+      if ([1, 2, 3].includes(Number(detail.quType))) {
+        const checkedOptions = (detail.answerList || []).filter(option => option && option.checkout)
+        if (!checkedOptions.length) return null
+        return checkedOptions
+          .map(option => option.sort != null ? option.sort : option.id)
+          .join(',')
+      }
+      if (detail.userAnswer != null && detail.userAnswer !== '') return detail.userAnswer
+      if (detail.answer != null && detail.answer !== '') return detail.answer
+      return null
+    },
     expandAll() {
       this.activeTypes = this.typeGroups.map(g => String(g.type))
     },
@@ -605,25 +625,40 @@ export default {
         const examId = this.info.examId
         const userId = this.info.userId
         const params = { examId: examId, userId: userId }
-        const results = await Promise.all([
-          recordExamDetail(params),
-          answerDetail(params).catch(() => ({ data: [] })),
-          answerPaperSummary(params).catch(() => ({ data: null }))
-        ])
-        const recordList = results[0].data || []
-        const scoreList = results[1].data || []
-        this.summary = results[2].data || {}
+        const isStudent = this.$route.meta.roles.includes('student')
+        const recordRes = await recordExamDetail(params)
+        const recordList = recordRes.data || []
+        let scoreList = []
+        this.summary = { ...this.info }
+        if (!isStudent) {
+          const [answerRes, summaryRes] = await Promise.all([
+            answerDetail(params).catch(() => ({ data: [] })),
+            answerPaperSummary(params).catch(() => ({ data: null }))
+          ])
+          scoreList = answerRes.data || []
+          this.summary = summaryRes.data || this.summary
+        } else {
+          const [answerRes, summaryRes] = await Promise.all([
+            myAnswerDetail({ examId }).catch(() => ({ data: [] })),
+            myAnswerPaperSummary({ examId }).catch(() => ({ data: null }))
+          ])
+          scoreList = answerRes.data || []
+          this.summary = summaryRes.data || this.summary
+        }
         const scoreMap = {}
         scoreList.forEach(s => {
-          if (s && s.quId != null) scoreMap[s.quId] = s
+          if (s && s.quId != null) scoreMap[String(s.quId)] = s
         })
         this.allQuestions = recordList.map(q => {
-          const score = scoreMap[q.questionId] || {}
+          const score = scoreMap[String(q.questionId)] || {}
           const merged = Object.assign({}, q, score)
           merged.quId = q.questionId
           merged.userId = userId
           merged.examId = examId
           if (merged.totalScore == null) merged.totalScore = q.score
+          if (merged.myOption == null || merged.myOption === '') {
+            merged.myOption = merged.answer != null ? merged.answer : ''
+          }
           if (merged.answer == null) merged.answer = q.myOption
           if (merged.refAnswer == null) merged.refAnswer = q.rightOption
           if (merged.quTitle == null) merged.quTitle = q.title

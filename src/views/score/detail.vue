@@ -140,6 +140,10 @@ export default {
       formatDuration,
       updateRow(row) {
         row.type= 1;
+        sessionStorage.setItem('answer_info', JSON.stringify({
+          ...row,
+          whetherMark: 1
+        }))
         sessionStorage.setItem('exam_record_context', JSON.stringify({
           examId: row.examId,
           userId: row.userId

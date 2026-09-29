@@ -273,8 +273,11 @@
 
 <script>
 import { recordExamDetail } from "@/api/record";
+import { answerDetail } from "@/api/answer";
+import { quDetail } from "@/api/exam";
 import AudioPlayer from "@/components/AudioPlayer";
 import { renderStemWithBlanks, splitAnswers } from "@/utils/blankPlaceholder";
+import { getUserId } from "@/utils/auth";
 export default {
   name: "ExamProcess",
   components: { AudioPlayer },
@@ -300,7 +303,7 @@ export default {
     } catch (error) {
       context = {};
     }
-    this.userId = record.userId != null ? record.userId : context.userId;
+    this.userId = record.userId != null ? record.userId : (context.userId != null ? context.userId : getUserId());
     this.examId = record.examId || record.id || context.examId;
     if (this.examId == null || this.examId === "") {
       this.data = [];
@@ -368,14 +371,63 @@ export default {
       this.loading = true;
       try {
         const params = { examId: this.examId, userId: this.userId };
-        const res = await recordExamDetail(params);
-        this.data = res.data || [];
+        const [recordRes, answerRes] = await Promise.all([
+          recordExamDetail(params),
+          answerDetail(params).catch(() => ({ data: [] }))
+        ]);
+        const recordList = recordRes.data || [];
+        const questionDetails = await Promise.all(
+          recordList.map(question =>
+            quDetail({ examId: this.examId, questionId: question.questionId })
+              .catch(() => ({ data: null }))
+          )
+        );
+        const detailMap = {};
+        recordList.forEach((question, index) => {
+          if (question.questionId != null) detailMap[question.questionId] = questionDetails[index];
+        });
+        const answerMap = {};
+        (answerRes.data || []).forEach(item => {
+          if (item && item.quId != null) answerMap[item.quId] = item;
+        });
+        this.data = recordList.map(question => {
+          const mergedQuestion = { ...question };
+          const savedAnswer = this.getSavedAnswer(detailMap[question.questionId]);
+          if (
+            (mergedQuestion.myOption == null || mergedQuestion.myOption === "") &&
+            savedAnswer != null
+          ) {
+            mergedQuestion.myOption = savedAnswer;
+          }
+          const answer = answerMap[question.questionId];
+          if (
+            (mergedQuestion.myOption == null || mergedQuestion.myOption === "") &&
+            answer &&
+            answer.answer != null
+          ) {
+            mergedQuestion.myOption = answer.answer;
+          }
+          return mergedQuestion;
+        });
       } catch (e) {
         this.data = [];
         this.$message.error("查询考试记录失败，请稍后重试");
       } finally {
         this.loading = false;
       }
+    },
+    getSavedAnswer(response) {
+      const detail = (response && response.data) || response || {};
+      if (detail.quType === 1 || detail.quType === 2 || detail.quType === 3) {
+        const checkedOptions = (detail.answerList || []).filter(option => option && option.checkout);
+        if (!checkedOptions.length) return null;
+        return checkedOptions
+          .map(option => option.sort != null ? option.sort : option.id)
+          .join(",");
+      }
+      if (detail.userAnswer != null && detail.userAnswer !== "") return detail.userAnswer;
+      if (detail.answer != null && detail.answer !== "") return detail.answer;
+      return null;
     },
     // 点击答题卡题号, 右侧题目滑动
     handleTag(index) {

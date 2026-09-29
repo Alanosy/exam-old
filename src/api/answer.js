@@ -24,9 +24,25 @@ export function answerDetail(params) {
   })
 }
 
+export function myAnswerDetail(params) {
+  return request({
+    url: 'answers/my/detail',
+    method: 'get',
+    params
+  })
+}
+
 export function answerPaperSummary(params) {
   return request({
     url: 'answers/exam/stu/summary',
+    method: 'get',
+    params
+  })
+}
+
+export function myAnswerPaperSummary(params) {
+  return request({
+    url: 'answers/my/exam/summary',
     method: 'get',
     params
   })
